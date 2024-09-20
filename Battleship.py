@@ -142,7 +142,7 @@ class Interface:
             self.num_ships_to_place = num_ships  # Store this value for Player 2 to use later.
         else:
             num_ships = self.num_ships_to_place  # Player 2 places the same number of ships.
-        
+        #test
         # Inform the player how many ships they will be placing
         print("+=========================================+")
         print(f"|  {name}, you will be placing {num_ships} ships. |")
