@@ -1,0 +1,4 @@
+Estimate of person-hours for completing the project
+
+Initial estimate: 31 hours
+Details: Team collaborated in a team meeting to split the project into tasks. Each individual task's work hours estimated on Jira by group decision and past experience, especially experience from Project 1. 
