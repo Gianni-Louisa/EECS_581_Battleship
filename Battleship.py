@@ -1,6 +1,7 @@
 import re  # Import the regular expressions module for pattern matching Logic based on chatgpt query and research due to the first time implementing regular expression logic.
 import os  # Import the operating system module for clearing the terminal.
 import time  # Import the time module for implementing delays.
+from SaveGame import * #Import the file responsible for the scoreboard
 
 class Player:
     def __init__(self):
@@ -256,6 +257,15 @@ class Interface:
         # Compare the number of unique hits to the total number of ship cells.
         if len(self.opponent.hits) == total_ship_cells:
             print(f"{self.get_current_player_name()} wins!")  # Announce the winner.
+            winner = self.get_current_player_number() #gets current player
+            updateSave(winner)
+            #
+
+
+            # add scoreboard stuff here
+
+
+            #
             return True  # Return True to indicate the game is won.
         return False  # Return False if no winner yet.
 
@@ -263,6 +273,10 @@ class Interface:
         """Get the name of the current player."""
         return "Player 1" if self.current_player == self.player1 else "Player 2"  # Return Player 1 or Player 2 based on the current player.
 
+    def get_current_player_number(self):
+        """Get the number of the current player."""
+        return 0 if self.current_player == self.player1 else 1 if self.current_player == self.player2 else 2  # Return 1 or 2 based on the current player.
+    
     def switch_players(self):
         """Switch the current player and the opponent."""
         self.current_player, self.opponent = self.opponent, self.current_player  # Swap the current player and opponent.
