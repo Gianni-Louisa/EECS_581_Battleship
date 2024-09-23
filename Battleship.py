@@ -143,7 +143,7 @@ class Interface:
             self.num_ships_to_place = num_ships  # Store this value for Player 2 to use later.
         else:
             num_ships = self.num_ships_to_place  # Player 2 places the same number of ships.
-        #test
+        
         # Inform the player how many ships they will be placing
         print("+=========================================+")
         print(f"|  {name}, you will be placing {num_ships} ships. |")
@@ -153,7 +153,7 @@ class Interface:
 
         for size in range(1, num_ships + 1):
             self.place_ship(player, size)  # Place each ship on the board.
-        self.clear_terminal_with_countdown()  # Clear the terminal after ship placement.
+        self.clear_terminal()  # Clear the terminal after ship placement.
 
     def get_number_of_ships(self):
         """Get the number of ships from the player."""
@@ -201,7 +201,7 @@ class Interface:
             if self.take_shot(self.opponent):
                 break  # End the game if there is a winner.
             self.switch_players()  # Switch to the other player.
-            self.clear_terminal_with_countdown()  # Clear the terminal before the next turn.
+            self.clear_terminal()  # Clear the terminal before the next turn.
 
     def print_boards(self):
         """Print both the current player's and the opponent's boards."""
@@ -259,6 +259,9 @@ class Interface:
             print(f"{self.get_current_player_name()} wins!")  # Announce the winner.
             num = self.get_current_player_number()
             updateSave(num) #updates the save file
+            #
+            #scorebard additionts here
+            #
             return True  # Return True to indicate the game is won.
         return False  # Return False if no winner yet.
 
@@ -273,11 +276,8 @@ class Interface:
         """Switch the current player and the opponent."""
         self.current_player, self.opponent = self.opponent, self.current_player  # Swap the current player and opponent.
 
-    def clear_terminal_with_countdown(self):
-        """Clear the terminal and show a countdown before changing turns."""
-        for i in range(5, 0, -1):
-            print(f"Changing turns in {i} seconds...", end='\r')  # Display countdown for 5 seconds.
-            time.sleep(1)  # Wait for 1 second.
+    def clear_terminal(self):
+        """Clear the terminal before changing turns."""
         os.system('cls' if os.name == 'nt' else 'clear')  # Clear the terminal based on the operating system.
         input("\nPress Enter to continue to the next player's turn...")  # Pause for user input to continue.
         print()
