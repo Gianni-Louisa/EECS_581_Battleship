@@ -1,6 +1,7 @@
 import re  # Import the regular expressions module for pattern matching Logic based on chatgpt query and research due to the first time implementing regular expression logic.
 import os  # Import the operating system module for clearing the terminal.
 import time  # Import the time module for implementing delays.
+import random
 from SaveGame import *
 
 class Player:
@@ -145,7 +146,7 @@ class Interface:
 
         # Loop while getting user input
         while True:
-            num_human_players = input("Input the number of human players (1 or 2)") # Ask user how many human players there will be
+            num_human_players = input("Input the number of human players (1 or 2): ") # Ask user how many human players there will be
             if num_human_players not in ['1', '2']: # Check for a valid input
                 print("Invalid number of human players, input a '1' or a '2'")
             else: # If valid input
@@ -165,6 +166,7 @@ class Interface:
             num_ships = self.num_ships_to_place  # Player 2 places the same number of ships.
         
         # Inform the player how many ships they will be placing
+        # if not player.is_ai:
         print("+=========================================+")
         print(f"|  {name}, you will be placing {num_ships} ships. |")
         print("+=========================================+")
@@ -194,24 +196,35 @@ class Interface:
         player.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
         print(f"Placing your 1x{size} ship:")  # Prompt the player to place a ship of given size.
         while True:
-            position = input(f"Enter the position (A-J, 1-10) for your {size}x{size} ship: ").strip().upper()  # Prompt for ship position.
+            if not player.is_ai: # If the player is a human
+                position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
+            else: # If the player is an AI
+                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
+                print("AI randomly chose position =", position) # TODO: debugging
+
             if size > 1:
-                direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()  # Prompt for ship direction if size > 1.
+                if not player.is_ai: # If player is a human
+                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()  # Prompt for ship direction if size > 1.
+                else: # If player is an AI
+                    direction = random.choice('HV') # Randomly choose an orientation
+                    print("AI randomly choose direction =", direction) # TODO: debugging
             else:
                 direction = None  # No need for direction if the ship size is 1x1.
             
             if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V') or direction is None): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
                 if player.place_ship(size, position, direction):
+                    # if not player.is_ai: 
                     print()
                     player.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
                     break  # Break the loop if the ship is placed successfully.
                 else:
-                    print(f"Error placing {size}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
+                    # if not player.is_ai: # Only print if player is a human
+                    print(f"Error placing {1}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
             else:
                 if not re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                    print(f"Invalid position format. Please use format like A1, B2 for your {size}x{size} ship.")  # Notify of position format error.
+                    print(f"Invalid position format. Please use format like A1, B2 for your {1}x{size} ship.")  # Notify of position format error.
                 if size > 1 and direction not in ('H', 'V'):
-                    print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {size}x{size} ship.")  # Notify of direction error.
+                    print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {1}x{size} ship.")  # Notify of direction error.
 
     def play_game(self):
         """Main game loop."""
@@ -227,7 +240,7 @@ class Interface:
         """Print both the current player's and the opponent's boards."""
         print()
         print("+======================+")
-        print(f"\n{self.get_current_player_name()}'s board:")  # Print the current player's board.
+        print(f"| {self.get_current_player_name()}'s board:    |")  # Print the current player's board.
         print("+======================+")
         self.current_player.print_board(reveal_ships=True)
 
