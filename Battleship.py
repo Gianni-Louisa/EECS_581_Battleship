@@ -18,6 +18,8 @@ class Player:
         self.is_ai = False
         # A string to track where the player hit on their previous turn (equal to None if player did not get a hit on the previous turn, otherwise it is the location of the hit)
         self.previous_turn_hit_location = None
+        # A list to store points orthogonal to a hit point 
+        self.orthogonal_points_to_shoot = None
 
     def place_ship(self, size, position, direction=None):
         """Place a ship on the board."""
@@ -292,29 +294,100 @@ class Interface:
                 # Easy mode - randomly choose location and shoot at it
                 if self.current_player.difficulty == 'e':
                     position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
-                    print("AI randomly chose position =", position, "to shoot")
+                    print("AI randomly chose position =", position, "to shoot") # TODO: remove
                     result = opponent.receive_shot(position) # Process the shot and get the result.
 
                     if result == 'Already Shot':
                         print("You've already shot at this position. Try again.")  # Notify of repeated shot.
                         continue  # Continue asking for a valid shot.
 
-                    if result == 'Hit': print("Hit!")  # Notify of a hit.
-                    elif result == 'Miss': print("Miss.")  # Notify of a miss.
-                    elif result == 'Sunk': print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Notify of a sunk ship.
+                    if result == 'Hit': 
+                        self.current_player.previous_turn_hit_location = position # Set the previous_turn_hit_location to the location that was just hit
+                        print("Hit!")  # TODO: remove
+                    elif result == 'Miss': 
+                        self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
+                        print("Miss.")  # TODO: remove
+                    elif result == 'Sunk':
+                        self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
+                        print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!") # TODO: remove
                     return self.check_winner()  # Check for a winner after the shot.
 
                 # Medium mode - randomly shoot until a hit, then shoot spaces orthogonal to hit location
                 elif self.current_player.difficulty == 'm':
-                    if self.current_player.previous_turn_hit_location is not None: # If the AI hit a ship on the last turn, 
-                        # Get points orthogoanl to the last hit
-                        pass
+                    if (self.current_player.previous_turn_hit_location is None) and (self.current_player.orthogonal_points_to_shoot is None): # If the AI did NOT hit a ship on the last turn, 
+                        
+                        position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
+                        print("Medium AI randomly chose position =", position, "to shoot") # TODO: remove
+
+                        result = opponent.receive_shot(position) # Process the shot and get the result.
+                        if result == 'Already Shot': 
+                            print("already shot this position") # TODO: remove
+                            continue  # Continue asking for a valid shot.
+                        if result == 'Hit': 
+                            self.current_player.previous_turn_hit_location = position # Set the previous_turn_hit_location to the location that was just hit
+                            print("Hit!")  # TODO: remove
+                        elif result == 'Miss': 
+                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
+                            print("Miss.")  # TODO: remove
+                        elif result == 'Sunk': 
+                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
+                            print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!") # TODO: remove
+                        return self.check_winner() # Check for a winner after the shot.
+                    
+                    # If AI DID hit a ship on last turn or is going through points orthogonal to a hit
+                    else:
+                        # If have not started shooting at orthogonal points
+                        if self.current_player.orthogonal_points_to_shoot is None:
+                            orthogonal_point_locations = self.get_orthogonal_points(self.current_player.previous_turn_hit_location) # Get points orthogoanl to the last hit
+                            print(f"Points orthogonal to {self.current_player.previous_turn_hit_location} are: ", orthogonal_point_locations) # TODO: remove
+                            self.current_player.orthogonal_points_to_shoot = orthogonal_point_locations # Set AI Player's orthogonal_points_to_shoot to be the points orthogonal 
+
+                            # self.current_player.previous_turn_hit_location = None # Set AI PLayer previous_turn_hit_location to None 
+
+                        shot_location = self.current_player.orthogonal_points_to_shoot.pop() # Get one of the orthogonal points to shoot while popping it from the list
+                        print("AI shooting an orthogonal point: ", shot_location)
+                        result = opponent.receive_shot(shot_location) # Shoot at location
+                        if result == 'Already Shot': 
+                            print("already shot this position") # TODO: remove
+                            continue  # Continue asking for a valid shot.
+                        if result == 'Hit': 
+                            self.current_player.previous_turn_hit_location = shot_location # Set the previous_turn_hit_location to the location that was just hit
+                            self.current_player.orthogonal_points_to_shoot = None # Set AI Player orthogonal_points_to_shoot to None since we hit another point which will now be the point to be shot around
+                            print("Hit!")  # TODO: remove
+                        elif result == 'Miss': 
+                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
+                            print("Miss.")  # TODO: remove
+                        elif result == 'Sunk': 
+                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
+                            self.current_player.orthogonal_points_to_shoot = None # Set AI Player orthogonal_points_to_shoot to None since the ship was sunk
+                            print(f"Hit! Ship size {self.get_ship_size_at(shot_location)}. Sunk!") # TODO: remove
+                        return self.check_winner() # Check for a winner after the shot.
+
 
                 # TODO: Hard mode - shoot at player's ships every time
                 elif self.current_player.difficulty == 'h':
                     pass
 
+    def get_orthogonal_points(self, hit_location: str) -> list:
+        """Get positions orthogonal to the 'hit_location'"""
 
+        cols = "ABCDEFGHIJ" # String of the possible columns
+        hit_col_inx = cols.index(hit_location[0]) # Get the index of the column where the hit was
+        hit_row = int(hit_location[1:]) # Get the row number of the hit
+
+        ortho_points = [] # Create a list to store the points orthogonal
+        if hit_col_inx > 0: # Check there is a column to the LEFT the point being checked
+            ortho_points.append(f"{cols[hit_col_inx-1]}{hit_row}") # Add position to the LEFT to list of orthogonal points
+        if hit_col_inx < 9: # Check there is a column to the RIGHT of the point being checked
+            ortho_points.append(f"{cols[hit_col_inx+1]}{hit_row}") # Add position to the RIGHT to list of orthogonal points
+        if hit_row > 1: # Check there is a row ABOVE the point being checked
+            ortho_points.append(f"{cols[hit_col_inx]}{hit_row-1}") # Add position ABOVE to list of orthogonal points
+        if hit_row < 10: # Check there is a row below the point being checked
+            ortho_points.append(f"{cols[hit_col_inx]}{hit_row+1}") # Add position BELOW to the list of orthogonal points
+
+        return ortho_points
+
+            
 
     def get_ship_size_at(self, position):
         """Get the size of the ship at a specific position."""
