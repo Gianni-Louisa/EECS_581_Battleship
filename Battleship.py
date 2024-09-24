@@ -259,6 +259,7 @@ class Interface:
             print(f"{self.get_current_player_name()} wins!")  # Announce the winner.
             num = self.get_current_player_number()
             updateSave(num) #updates the save file
+            printScoreBoard() #shows the score board
             #
             #scorebard additionts here
             #

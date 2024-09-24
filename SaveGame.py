@@ -10,7 +10,9 @@ Creation Date: 9/23/24
 
 from os import system, name #sets the system name to name
 
-'''
+Player1, Player2, CPU = range(3) #enumorators for each player
+
+''' 
 def getSystem()
     if name == 'nt':
         #windows save file
@@ -72,10 +74,15 @@ prints the scoreboard
 def printScoreBoard():
     try:
         f = open("save.txt", "r")
-        #if there are three ints on 3 different lines then it is valid if not need to fix that
-        print(f.read())
+        data = [] #temporary variable to hold contents of save file
+        for line in f: #for every line in the save file
+            data.append(line.rstrip('\n')) #append the line to the data list without an '\n'
+        print("************ Score Board ************")
+        print(f"Player 1 has won {data[Player1]} times")
+        print(f"Player 2 has won {data[Player2]} times")
+        print(f"CPU has won {data[CPU]} times")
     except:
-        print("file is missing")
+        print("scoreboard is missing")
 
 def test():
     #strucute of list and save file
