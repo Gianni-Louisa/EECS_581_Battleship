@@ -12,21 +12,9 @@ from os import system, name #sets the system name to name
 
 Player1, Player2, CPU = range(3) #enumorators for each player
 
-''' 
-def getSystem()
-    if name == 'nt':
-        #windows save file
-        print("windows")
-    else:
-        #linux save file
-        print("linux")
-'''
-
 '''
 if there is no save file one is created. writes all of the data from
 the games that were played to the save file
-save file is saved locally and it is marked as unchanged so that 
-it does not get pushed to the repo
 '''
 def updateSave(winner):
     validate() #if there is no save file it will create one if there is already one then the program will continue 
