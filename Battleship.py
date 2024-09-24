@@ -13,6 +13,8 @@ class Player:
         self.hits = set()  
         # Set to keep track of miss positions.
         self.misses = set()  
+        # Bool to set the Player to be an AI
+        self.is_ai = False
 
     def place_ship(self, size, position, direction=None):
         """Place a ship on the board."""
@@ -128,9 +130,27 @@ class Interface:
         print("|       Welcome to Battleship!       |")  # Greet the players.
         print("+====================================+")
         print()
+
+        self.query_mode() # Ask if playing AI or another player
         self.setup_player(self.player1, "Player 1")  # Setup Player 1's board.
-        self.setup_player(self.player2, "Player 2")  # Setup Player 2's board.
+        if not self.playing_ai: # If not playing an AI
+            self.setup_player(self.player2, "Player 2")  # Setup Player 2's board.
+        else: # If playing an AI
+            self.player2.is_ai = True # Set the player's is_ai bool to be true
+            self.setup_player(self.player2, "Player 2 (AI)") # Setup AI player 2's board
         self.play_game()  # Start the game loop.
+
+    def query_mode(self):
+        """Ask player for gamemode"""
+
+        # Loop while getting user input
+        while True:
+            num_human_players = input("Input the number of human players (1 or 2)") # Ask user how many human players there will be
+            if num_human_players not in ['1', '2']: # Check for a valid input
+                print("Invalid number of human players, input a '1' or a '2'")
+            else: # If valid input
+                self.playing_ai = num_human_players=='1' # Set self.playing_ai boolean to be true if the number of human players is 1
+                break # Break out of loop
 
     def setup_player(self, player, name):
         """Guide a player through placing their ships."""
