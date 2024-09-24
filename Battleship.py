@@ -16,6 +16,8 @@ class Player:
         self.misses = set()  
         # Bool to set the Player to be an AI
         self.is_ai = False
+        # A string to track where the player hit on their previous turn (equal to None if player did not get a hit on the previous turn, otherwise it is the location of the hit)
+        self.previous_turn_hit_location = None
 
     def place_ship(self, size, position, direction=None):
         """Place a ship on the board."""
@@ -265,23 +267,54 @@ class Interface:
     def take_shot(self, opponent):
         """Handle a shot taken by the current player at the opponent's board."""
         while True:
-            position = input(f"Enter your shot (A-J, 1-10): ").strip().upper()  # Prompt for the shot position.
-            if re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                result = opponent.receive_shot(position)  # Process the shot and get the result.
-                
-                if result == 'Already Shot':
-                    print("You've already shot at this position. Try again.")  # Notify of repeated shot.
-                    continue  # Continue asking for a valid shot.
-                
-                if result == 'Hit':
-                    print("Hit!")  # Notify of a hit.
-                elif result == 'Miss':
-                    print("Miss.")  # Notify of a miss.
-                elif result == 'Sunk':
-                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Notify of a sunk ship.
-                return self.check_winner()  # Check for a winner after the shot.
+            # If the player taking the shot is NOT an AI
+            if not self.current_player.is_ai:
+                position = input(f"Enter your shot (A-J, 1-10): ").strip().upper()  # Prompt for the shot position.
+                if re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
+                    result = opponent.receive_shot(position)  # Process the shot and get the result.
+                    
+                    if result == 'Already Shot':
+                        print("You've already shot at this position. Try again.")  # Notify of repeated shot.
+                        continue  # Continue asking for a valid shot.
+                    
+                    if result == 'Hit':
+                        print("Hit!")  # Notify of a hit.
+                    elif result == 'Miss':
+                        print("Miss.")  # Notify of a miss.
+                    elif result == 'Sunk':
+                        print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Notify of a sunk ship.
+                    return self.check_winner()  # Check for a winner after the shot.
+                else:
+                    print("Invalid input format or out of bounds. Please use format like A1, B2.")  # Notify of an invalid shot position.
+
+            # If player taking shot IS an AI
             else:
-                print("Invalid input format or out of bounds. Please use format like A1, B2.")  # Notify of an invalid shot position.
+                # Easy mode - randomly choose location and shoot at it
+                if self.current_player.difficulty == 'e':
+                    position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
+                    print("AI randomly chose position =", position, "to shoot")
+                    result = opponent.receive_shot(position) # Process the shot and get the result.
+
+                    if result == 'Already Shot':
+                        print("You've already shot at this position. Try again.")  # Notify of repeated shot.
+                        continue  # Continue asking for a valid shot.
+
+                    if result == 'Hit': print("Hit!")  # Notify of a hit.
+                    elif result == 'Miss': print("Miss.")  # Notify of a miss.
+                    elif result == 'Sunk': print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Notify of a sunk ship.
+                    return self.check_winner()  # Check for a winner after the shot.
+
+                # Medium mode - randomly shoot until a hit, then shoot spaces orthogonal to hit location
+                elif self.current_player.difficulty == 'm':
+                    if self.current_player.previous_turn_hit_location is not None: # If the AI hit a ship on the last turn, 
+                        # Get points orthogoanl to the last hit
+                        pass
+
+                # TODO: Hard mode - shoot at player's ships every time
+                elif self.current_player.difficulty == 'h':
+                    pass
+
+
 
     def get_ship_size_at(self, position):
         """Get the size of the ship at a specific position."""
