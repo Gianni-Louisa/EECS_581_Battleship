@@ -138,20 +138,32 @@ class Interface:
             self.setup_player(self.player2, "Player 2")  # Setup Player 2's board.
         else: # If playing an AI
             self.player2.is_ai = True # Set the player's is_ai bool to be true
+            self.query_ai_difficulty(self.player2) # Ask user for the difficulty to make the AI
             self.setup_player(self.player2, "Player 2 (AI)") # Setup AI player 2's board
         self.play_game()  # Start the game loop.
 
     def query_mode(self):
         """Ask player for gamemode"""
 
-        # Loop while getting user input
-        while True:
-            num_human_players = input("Input the number of human players (1 or 2): ") # Ask user how many human players there will be
-            if num_human_players not in ['1', '2']: # Check for a valid input
-                print("Invalid number of human players, input a '1' or a '2'")
+        while True: # Loop while getting user input
+            playing_cpu = input("Play against CPU? (y/n): ").lower() # Ask user how many human players there will be
+            if playing_cpu not in ['yes', 'y', 'no', 'n']: # Check for a valid input
+                print("Invalid response. Input 'y' or 'n'") # Print error message if input was not valid
             else: # If valid input
-                self.playing_ai = num_human_players=='1' # Set self.playing_ai boolean to be true if the number of human players is 1
+                self.playing_ai = playing_cpu[0]=='y' # Set self.playing_ai boolean to be true if the user typed in a 'yes' or a 'y'
                 break # Break out of loop
+
+    def query_ai_difficulty(self, ai_player: Player):
+        """Ask human player what difficulty to make the AI that they will be playing against"""
+        
+        while True: # Loop while getting input
+            difficulty = input("What difficulty level should the AI be? Easy(e), Medium(m), or Hard(h): ").lower() # Ask user what difficutly to make AI (and make lowercase)
+            if difficulty not in ['easy', 'e', 'medium', 'm', 'hard', 'h']: # If the response is not valid
+                print("Invalid difficulty selected for the AI. Respond with 'e', 'm', or 'h' for Easy, Medium, or Hard difficulties respectively") # Print out error message
+            else: # If response was valid
+                ai_player.difficulty = difficulty[0] # Set ai Player's difficulty to be 'e', 'm', or 'h'
+                break # Break out of loop
+
 
     def setup_player(self, player, name):
         """Guide a player through placing their ships."""
@@ -311,6 +323,7 @@ class Interface:
         self.current_player, self.opponent = self.opponent, self.current_player  # Swap the current player and opponent.
 
     def clear_terminal(self):
+        return # TODO: debugging
         """Clear the terminal before changing turns."""
         os.system('cls' if os.name == 'nt' else 'clear')  # Clear the terminal based on the operating system.
         input("\nPress Enter to continue to the next player's turn...")  # Pause for user input to continue.
