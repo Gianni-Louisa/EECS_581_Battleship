@@ -269,10 +269,10 @@ class Interface:
     def take_shot(self, opponent):
         """Handle a shot taken by the current player at the opponent's board."""
         while True:
-            # If the player taking the shot is NOT an AI
+            # If player taking the shot is NOT an AI
             if not self.current_player.is_ai:
                 position = input(f"Enter your shot (A-J, 1-10): ").strip().upper()  # Prompt for the shot position.
-                if re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
+                if re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression logic
                     result = opponent.receive_shot(position)  # Process the shot and get the result.
                     
                     if result == 'Already Shot':
@@ -293,101 +293,26 @@ class Interface:
             else:
                 # Easy mode - randomly choose location and shoot at it
                 if self.current_player.difficulty == 'e':
-                    position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
-                    print("AI randomly chose position =", position, "to shoot") # TODO: remove
-                    result = opponent.receive_shot(position) # Process the shot and get the result.
-
-                    if result == 'Already Shot':
-                        print("You've already shot at this position. Try again.")  # Notify of repeated shot.
-                        continue  # Continue asking for a valid shot.
-
-                    if result == 'Hit': 
-                        self.current_player.previous_turn_hit_location = position # Set the previous_turn_hit_location to the location that was just hit
-                        print("Hit!")  # TODO: remove
-                    elif result == 'Miss': 
-                        self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
-                        print("Miss.")  # TODO: remove
-                    elif result == 'Sunk':
-                        self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
-                        print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!") # TODO: remove
-                    return self.check_winner()  # Check for a winner after the shot.
-
-                # Medium mode - randomly shoot until a hit, then shoot spaces orthogonal to hit location
-                elif self.current_player.difficulty == 'm':
-                    if (self.current_player.previous_turn_hit_location is None) and (self.current_player.orthogonal_points_to_shoot is None): # If the AI did NOT hit a ship on the last turn, 
-                        
-                        position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
-                        print("Medium AI randomly chose position =", position, "to shoot") # TODO: remove
-
-                        result = opponent.receive_shot(position) # Process the shot and get the result.
-                        if result == 'Already Shot': 
-                            print("already shot this position") # TODO: remove
-                            continue  # Continue asking for a valid shot.
-                        if result == 'Hit': 
-                            self.current_player.previous_turn_hit_location = position # Set the previous_turn_hit_location to the location that was just hit
-                            print("Hit!")  # TODO: remove
-                        elif result == 'Miss': 
-                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
-                            print("Miss.")  # TODO: remove
-                        elif result == 'Sunk': 
-                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
-                            print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!") # TODO: remove
-                        return self.check_winner() # Check for a winner after the shot.
+                    position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}"  # Randomly select a position 
+                    print(f"AI chose position {position} to shoot.")  # Display AI's shot position
                     
-                    # If AI DID hit a ship on last turn or is going through points orthogonal to a hit
-                    else:
-                        # If have not started shooting at orthogonal points
-                        if self.current_player.orthogonal_points_to_shoot is None:
-                            orthogonal_point_locations = self.get_orthogonal_points(self.current_player.previous_turn_hit_location) # Get points orthogoanl to the last hit
-                            print(f"Points orthogonal to {self.current_player.previous_turn_hit_location} are: ", orthogonal_point_locations) # TODO: remove
-                            self.current_player.orthogonal_points_to_shoot = orthogonal_point_locations # Set AI Player's orthogonal_points_to_shoot to be the points orthogonal 
-
-                            # self.current_player.previous_turn_hit_location = None # Set AI PLayer previous_turn_hit_location to None 
-
-                        shot_location = self.current_player.orthogonal_points_to_shoot.pop() # Get one of the orthogonal points to shoot while popping it from the list
-                        print("AI shooting an orthogonal point: ", shot_location)
-                        result = opponent.receive_shot(shot_location) # Shoot at location
-                        if result == 'Already Shot': 
-                            print("already shot this position") # TODO: remove
-                            continue  # Continue asking for a valid shot.
-                        if result == 'Hit': 
-                            self.current_player.previous_turn_hit_location = shot_location # Set the previous_turn_hit_location to the location that was just hit
-                            self.current_player.orthogonal_points_to_shoot = None # Set AI Player orthogonal_points_to_shoot to None since we hit another point which will now be the point to be shot around
-                            print("Hit!")  # TODO: remove
-                        elif result == 'Miss': 
-                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
-                            print("Miss.")  # TODO: remove
-                        elif result == 'Sunk': 
-                            self.current_player.previous_turn_hit_y
-                            location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
-                            self.current_player.orthogonal_points_to_shoot = None # Set AI Player orthogonal_points_to_shoot to None since the ship was sunk
-                            print(f"Hit! Ship size {self.get_ship_size_at(shot_location)}. Sunk!") # TODO: remove
-                        return self.check_winner() # Check for a winner after the shot.
-
-
-                # Hard mode - never miss, shoot directly at ship locations
-                elif self.current_player.difficulty == 'h':
-                    # Find the first cell that contains a ship that hasn't been hit yet
-                    for i in range(10):
-                        for j in range(10):
-                            position = f"{chr(ord('A') + j)}{i+1}"  # Convert the board indices to a position
-                            if self.opponent.board[i][j] != 0 and position not in self.current_player.hits:  # Find unhit ship cells
-                                result = opponent.receive_shot(position)  # Shoot at the found ship cell
-                                print(f"Hard AI shot at {position}")  # TODO: remove
-                                
-                                if result == 'Already Shot':
-                                    continue  # If already shot, continue searching for another ship position
-                                if result == 'Hit':
-                                    self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
-                                    print("Hit!")  # TODO: remove
-                                elif result == 'Miss':
-                                    self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
-                                    print("Miss.")  # TODO: remove
-                                elif result == 'Sunk':
-                                    self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship
-                                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # TODO: remove
-                                
-                                return self.check_winner()  # Check for a winner after the shot
+                    result = opponent.receive_shot(position)  # Process the shot and get the result.
+                    if result == 'Already Shot':
+                        print("AI already shot at this position. Trying again.")
+                        continue  # Continue asking for a valid shot.
+                    
+                    if result == 'Hit': 
+                        self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
+                        print(f"AI Hit at {position}!")  
+                    elif result == 'Miss': 
+                        self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
+                        print(f"AI Missed at {position}.")  
+                    elif result == 'Sunk':
+                        self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship 
+                        print(f"AI Hit! Ship size {self.get_ship_size_at(position)}. Sunk at {position}!")
+                    
+                    input("\nPress Enter to continue to the next player's turn...")  # Wait for the user to acknowledge the AI's move.
+                    return self.check_winner()  # Check for a winner after the shot.
 
 
     def get_orthogonal_points(self, hit_location: str) -> list:
