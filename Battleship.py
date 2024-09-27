@@ -358,15 +358,37 @@ class Interface:
                             self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
                             print("Miss.")  # TODO: remove
                         elif result == 'Sunk': 
-                            self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
+                            self.current_player.previous_turn_hit_y
+                            location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
                             self.current_player.orthogonal_points_to_shoot = None # Set AI Player orthogonal_points_to_shoot to None since the ship was sunk
                             print(f"Hit! Ship size {self.get_ship_size_at(shot_location)}. Sunk!") # TODO: remove
                         return self.check_winner() # Check for a winner after the shot.
 
 
-                # TODO: Hard mode - shoot at player's ships every time
+                # Hard mode - never miss, shoot directly at ship locations
                 elif self.current_player.difficulty == 'h':
-                    pass
+                    # Find the first cell that contains a ship that hasn't been hit yet
+                    for i in range(10):
+                        for j in range(10):
+                            position = f"{chr(ord('A') + j)}{i+1}"  # Convert the board indices to a position
+                            if self.opponent.board[i][j] != 0 and position not in self.current_player.hits:  # Find unhit ship cells
+                                result = opponent.receive_shot(position)  # Shoot at the found ship cell
+                                print(f"Hard AI shot at {position}")  # TODO: remove
+                                
+                                if result == 'Already Shot':
+                                    continue  # If already shot, continue searching for another ship position
+                                if result == 'Hit':
+                                    self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
+                                    print("Hit!")  # TODO: remove
+                                elif result == 'Miss':
+                                    self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
+                                    print("Miss.")  # TODO: remove
+                                elif result == 'Sunk':
+                                    self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship
+                                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # TODO: remove
+                                
+                                return self.check_winner()  # Check for a winner after the shot
+
 
     def get_orthogonal_points(self, hit_location: str) -> list:
         """Get positions orthogonal to the 'hit_location'"""
@@ -402,24 +424,31 @@ class Interface:
 
     def check_winner(self):
         """Check if the game has a winner."""
-        # Calculate the total number of ship cells based on placed ships.
-        total_ship_cells = sum(size for _, size, _ in self.opponent.ships)
+        total_ship_cells = sum(size for _, size, _ in self.opponent.ships)  # Calculate total number of ship cells.
 
-        # Compare the number of unique hits to the total number of ship cells.
-        if len(self.opponent.hits) == total_ship_cells:
-            print(f"{self.get_current_player_name()} wins!")  # Announce the winner.
-            num = self.get_current_player_number()
-            updateSave(num) #updates the save file
-            printScoreBoard() #shows the score board
-            #
-            #scorebard additionts here
-            #
-            return True  # Return True to indicate the game is won.
-        return False  # Return False if no winner yet.
+        if len(self.opponent.hits) == total_ship_cells:  # Compare unique hits to total ship cells.
+            winner_name = self.get_current_player_name()
+            
+            if winner_name == "Player 1":
+                print(f"Player 1 wins!")
+                updateSave(0)  # Update save for Player 1
+            elif winner_name == "Player 2":
+                print(f"Player 2 wins!")
+                updateSave(1)  # Update save for Player 2
+            else:
+                print(f"CPU wins!")
+                updateSave(2)  # Update save for CPU
+            
+            printScoreBoard()  # Show the updated scoreboard
+            return True  # Return True to indicate game is over
+        return False  # No winner yet, return False
+
 
     def get_current_player_name(self):
         """Get the name of the current player."""
-        return "Player 1" if self.current_player == self.player1 else "Player 2"  # Return Player 1 or Player 2 based on the current player.
+        if self.current_player.is_ai:
+            return "CPU"  # Return "CPU" for AI player
+        return "Player 1" if self.current_player == self.player1 else "Player 2"  # Return Player 1 or Player 2 based on the current player
 
     def get_current_player_number(self):
         return 0 if self.current_player == self.player1 else 1 if self.current_player == self.player2 else 2  # Return 1 or 2 based on the current player.
@@ -429,8 +458,7 @@ class Interface:
         self.current_player, self.opponent = self.opponent, self.current_player  # Swap the current player and opponent.
 
     def clear_terminal(self):
-        return # TODO: debugging
-        """Clear the terminal before changing turns."""
+        """Clear the terminal before changing tyurns."""
         os.system('cls' if os.name == 'nt' else 'clear')  # Clear the terminal based on the operating system.
         input("\nPress Enter to continue to the next player's turn...")  # Pause for user input to continue.
         print()
