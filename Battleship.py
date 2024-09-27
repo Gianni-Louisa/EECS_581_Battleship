@@ -31,7 +31,7 @@ class Player:
         if direction == 'H':
             if col + size > 10:  # Check if the ship fits horizontally on the board.
                 return False
-            for i in range(size):
+            for i in range(size): #
                 if col + i >= 10 or self.board[row][col + i] != 0:  # Check if the ship overlaps with existing ships.
                     return False
             for i in range(size):
