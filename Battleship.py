@@ -23,31 +23,62 @@ class Player:
 
     def place_ship(self, size, position, direction=None):
         """Place a ship on the board."""
-        col, row = self.convert_position_to_indices(position)  # Convert the position to board indices.
-        
-        if size == 1:
-            direction = 'H'  # For a 1x1 ship, direction is irrelevant.
+        col, row = self.convert_position_to_indices(position)  # Convert the position to board indices
 
-        if direction == 'H':
-            if col + size > 10:  # Check if the ship fits horizontally on the board.
-                return False
-            for i in range(size): #
-                if col + i >= 10 or self.board[row][col + i] != 0:  # Check if the ship overlaps with existing ships.
-                    return False
-            for i in range(size):
-                self.board[row][col + i] = size  # Place the ship on the board horizontally.
-        elif direction == 'V':
-            if row + size > 10:  # Check if the ship fits vertically on the board.
-                return False
-            for i in range(size):
-                if row + i >= 10 or self.board[row + i][col] != 0:  # Check if the ship overlaps with existing ships.
-                    return False
-            for i in range(size):
-                self.board[row + i][col] = size  # Place the ship on the board vertically.
+        if size != 1 and size != 2:
+            if size == 5:
+                # U-shaped ship
+                if direction == 'N':
+                    coords = [(row, col), (row, col-1), (row, col-2), (row-1, col), (row-1, col-2)]
+                elif direction == 'S':
+                    coords = [(row, col), (row, col+1), (row, col+2), (row+1, col), (row+1, col+2)]
+                elif direction == 'E':
+                    coords = [(row, col), (row-1, col), (row-2, col), (row, col+1), (row-2, col+1)]
+                elif direction == 'W':
+                    coords = [(row, col), (row+1, col), (row+2, col), (row, col-1), (row+2, col-1)]
+                else:
+                    return False  # Return False for invalid direction.
+            elif size == 4:
+                # S-shaped ship
+                if direction == 'N' or direction == 'S':
+                    coords = [(row, col), (row+1, col), (row+1, col+1), (row+2, col+1)]
+                elif direction == 'E' or direction == 'W':
+                    coords = [(row, col), (row, col+1), (row-1, col+1), (row-1, col+2)]
+                else:
+                    return False  # Return False for invalid direction.
+            elif size == 3:
+                # 3/4-square shaped ship
+                if direction == 'N':
+                    coords = [(row, col), (row+1, col), (row+1, col+1)]
+                elif direction == 'S':
+                    coords = [(row, col), (row-1, col), (row-1, col-1)]
+                elif direction == 'E':
+                    coords = [(row, col), (row, col-1), (row+1, col-1)]
+                elif direction == 'W':
+                    coords = [(row, col), (row, col+1), (row-1, col+1)]
+                else:
+                    return False  # Return False for invalid direction.
         else:
-            return False  # Return False for invalid direction.
+            # Handle regular horizontal or vertical placement for size 1 and 2
+            if size == 1:
+                direction = 'H'  # For a 1x1 ship, direction is irrelevant
+            if direction == 'H':
+                coords = [(row, col + i) for i in range(size)]
+            elif direction == 'V':
+                coords = [(row + i, col) for i in range(size)]
+            else:
+                return False  # Invalid direction
 
-        self.ships.append((position, size, direction))  # Add the ship details to the player's ships list.
+        # Check if ship placement is valid (within bounds and no overlap)
+        for r, c in coords:
+            if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0:
+                return False  # Ship goes out of bounds or overlaps
+
+        # Place the ship
+        for r, c in coords:
+            self.board[r][c] = size
+
+        self.ships.append((coords, size))  # Record the ship's coordinates and size
         return True
 
     def receive_shot(self, position):
@@ -214,20 +245,19 @@ class Interface:
         while True:
             if not player.is_ai: # If the player is a human
                 position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
+                if size <= 2:
+                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()
+                else:
+                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper()
             else: # If the player is an AI
-                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
+                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position # TODO: debugging
+                if size <= 2:
+                    direction = f"{random.choice('HV')}"# TODO: debugging
+                else:
+                    direction = f"{random.choice('NSEW')}"# TODO: debugging
                 print("AI randomly chose position =", position) # TODO: debugging
-
-            if size > 1:
-                if not player.is_ai: # If player is a human
-                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()  # Prompt for ship direction if size > 1.
-                else: # If player is an AI
-                    direction = random.choice('HV') # Randomly choose an orientation
-                    print("AI randomly choose direction =", direction) # TODO: debugging
-            else:
-                direction = None  # No need for direction if the ship size is 1x1.
             
-            if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V') or direction is None): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
+            if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
                 if player.place_ship(size, position, direction):
                     # if not player.is_ai: 
                     print()
