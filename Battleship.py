@@ -20,67 +20,62 @@ class Player:
         self.previous_turn_hit_location = None
         # A list to store points orthogonal to a hit point 
         self.orthogonal_points_to_shoot = None
-
+#start of team, chat gpt, and previous team authored
     def place_ship(self, size, position, direction=None):
         """Place a ship on the board."""
         col, row = self.convert_position_to_indices(position)  # Convert the position to board indices
 
-        if size != 1 and size != 2:
-            if size == 5:
-                # U-shaped ship
-                if direction == 'N':
-                    coords = [(row, col), (row, col-1), (row, col-2), (row-1, col), (row-1, col-2)]
-                elif direction == 'S':
-                    coords = [(row, col), (row, col+1), (row, col+2), (row+1, col), (row+1, col+2)]
-                elif direction == 'E':
-                    coords = [(row, col), (row-1, col), (row-2, col), (row, col+1), (row-2, col+1)]
-                elif direction == 'W':
-                    coords = [(row, col), (row+1, col), (row+2, col), (row, col-1), (row+2, col-1)]
+        if size != 1 and size != 2: #sets up the unique ship shapes for ships 3-5
+            if size == 5: #U-shaped ship
+                if direction == 'N': #ships is an actual U
+                    coords = [(row, col), (row, col-1), (row, col-2), (row-1, col), (row-1, col-2)] #sets up the ship starting from the bottom right of the u
+                elif direction == 'S': #the U shape is flipped upside down
+                    coords = [(row, col), (row, col+1), (row, col+2), (row+1, col), (row+1, col+2)] #sets up the ship starting from the top left of the upside down u
+                elif direction == 'E': #the U shape is 90 degrees to the right
+                    coords = [(row, col), (row-1, col), (row-2, col), (row, col+1), (row-2, col+1)] #sets up the ship starting from the bottom left of the right rotated u
+                elif direction == 'W': #the U shape is 90 degrees to the left
+                    coords = [(row, col), (row+1, col), (row+2, col), (row, col-1), (row+2, col-1)] #sets up the ship starting from the top right of the left rotated u
                 else:
                     return False  # Return False for invalid direction.
-            elif size == 4:
-                # S-shaped ship
-                if direction == 'N' or direction == 'S':
-                    coords = [(row, col), (row+1, col), (row+1, col+1), (row+2, col+1)]
-                elif direction == 'E' or direction == 'W':
-                    coords = [(row, col), (row, col+1), (row-1, col+1), (row-1, col+2)]
+            elif size == 4: #S-shaped ship
+                if direction == 'N' or direction == 'S': #the S shape is rotated 90 degrees to the right
+                    coords = [(row, col), (row+1, col), (row+1, col+1), (row+2, col+1)] #sets up the ship starting from the top of the rotated s
+                elif direction == 'E' or direction == 'W': #the ship is an actual S
+                    coords = [(row, col), (row, col+1), (row-1, col+1), (row-1, col+2)] #sets up the ship starting from the bottom left of the s
                 else:
                     return False  # Return False for invalid direction.
-            elif size == 3:
-                # 3/4-square shaped ship
-                if direction == 'N':
-                    coords = [(row, col), (row+1, col), (row+1, col+1)]
-                elif direction == 'S':
-                    coords = [(row, col), (row-1, col), (row-1, col-1)]
-                elif direction == 'E':
-                    coords = [(row, col), (row, col-1), (row+1, col-1)]
-                elif direction == 'W':
-                    coords = [(row, col), (row, col+1), (row-1, col+1)]
+            elif size == 3: # 3/4-square shaped ship
+                if direction == 'N': #the square is missing its top right corner
+                    coords = [(row, col), (row+1, col), (row+1, col+1)] #sets up the ship starting from the top of the shape
+                elif direction == 'S': #the square is missing its bottom left corner
+                    coords = [(row, col), (row-1, col), (row-1, col-1)] #sets up the ship starting from the bottom of the shape
+                elif direction == 'E': #the square is missing its bottom right corner
+                    coords = [(row, col), (row, col-1), (row+1, col-1)] #sets up the ship starting from the top right of the shape
+                elif direction == 'W': #the square is missing its top left corner
+                    coords = [(row, col), (row, col+1), (row-1, col+1)] #sets up the ship starting from the bottom left of the ship
                 else:
                     return False  # Return False for invalid direction.
         else:
             # Handle regular horizontal or vertical placement for size 1 and 2
-            if size == 1:
+            if size == 1: #ship size is 1
                 direction = 'H'  # For a 1x1 ship, direction is irrelevant
-            if direction == 'H':
-                coords = [(row, col + i) for i in range(size)]
-            elif direction == 'V':
-                coords = [(row + i, col) for i in range(size)]
+            if direction == 'H': #ship is being placed horizontally
+                coords = [(row, col + i) for i in range(size)] #place the ship starting from the left of the shape
+            elif direction == 'V': #ship is being placed vertically
+                coords = [(row + i, col) for i in range(size)] #place the ship starting from the top of the shape
             else:
                 return False  # Invalid direction
 
-        # Check if ship placement is valid (within bounds and no overlap)
-        for r, c in coords:
-            if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0:
+        for r, c in coords: #Check if ship placement is valid (within bounds and no overlap)
+            if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0: #checking bondaries and overlap
                 return False  # Ship goes out of bounds or overlaps
 
-        # Place the ship
-        for r, c in coords:
-            self.board[r][c] = size
+        for r, c in coords: #place the ship on the board
+            self.board[r][c] = size #add numbers the board equal to the total size of the ship
 
-        self.ships.append((coords, size))  # Record the ship's coordinates and size
+        self.ships.append((coords, size))  #record the ship's coordinates and size
         return True
-
+#end of team, chat gpt, and previous team authored
     def receive_shot(self, position):
         """Receive a shot on the board and return the result."""
         col, row = self.convert_position_to_indices(position)  # Convert the shot position to board indices.
@@ -236,7 +231,7 @@ class Interface:
                     print("Please enter a number between 1 and 5.")  # Prompt for a valid number.
             except ValueError:
                 print("Invalid input. Please enter a number.")  # Handle non-numeric input.
-
+#start of team, chat gpt, and previous steam authored
     def place_ship(self, player, size):
         """Guide the player through placing a single ship on their board."""
         print()
@@ -245,16 +240,16 @@ class Interface:
         while True:
             if not player.is_ai: # If the player is a human
                 position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
-                if size <= 2:
-                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()
-                else:
-                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper()
+                if size <= 2: #runs if the ship is size 1 or 2
+                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper() #asks the user if they want their ship to be placed vertically or horizontally
+                else: #runs if ship size is 3,4, or 5
+                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper() #asks the user which orientation they want their ship to be in
             else: # If the player is an AI
                 position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position # TODO: debugging
                 if size <= 2:
-                    direction = f"{random.choice('HV')}"# TODO: debugging
+                    direction = f"{random.choice('HV')}"#chooses a random orientation# TODO: debugging
                 else:
-                    direction = f"{random.choice('NSEW')}"# TODO: debugging
+                    direction = f"{random.choice('NSEW')}"#chooses a random orientation# TODO: debugging
                 print("AI randomly chose position =", position) # TODO: debugging
             
             if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
@@ -269,9 +264,9 @@ class Interface:
             else:
                 if not re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
                     print(f"Invalid position format. Please use format like A1, B2 for your {1}x{size} ship.")  # Notify of position format error.
-                if size > 1 and direction not in ('H', 'V'):
+                if size > 1 and direction not in ('H', 'V', 'N', 'S', 'E', 'W'):
                     print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {1}x{size} ship.")  # Notify of direction error.
-
+#end of team, chat gpt, and previous steam authored
     def play_game(self):
         """Main game loop."""
         while True:
