@@ -1,7 +1,8 @@
 import re  # Import the regular expressions module for pattern matching Logic based on chatgpt query and research due to the first time implementing regular expression logic.
 import os  # Import the operating system module for clearing the terminal.
 import time  # Import the time module for implementing delays.
-from SaveGame import * #Import the file responsible for the scoreboard
+import random
+from SaveGame import *
 
 class Player:
     def __init__(self):
@@ -13,34 +14,71 @@ class Player:
         self.hits = set()  
         # Set to keep track of miss positions.
         self.misses = set()  
+        # Bool to set the Player to be an AI
+        self.is_ai = False
+        # A string to track where the player hit on their previous turn (equal to None if player did not get a hit on the previous turn, otherwise it is the location of the hit)
+        self.previous_turn_hit_location = None
+        # A list to store points orthogonal to a hit point 
+        self.orthogonal_points_to_shoot = None
 
     def place_ship(self, size, position, direction=None):
         """Place a ship on the board."""
-        col, row = self.convert_position_to_indices(position)  # Convert the position to board indices.
-        
-        if size == 1:
-            direction = 'H'  # For a 1x1 ship, direction is irrelevant.
+        col, row = self.convert_position_to_indices(position)  # Convert the position to board indices
 
-        if direction == 'H':
-            if col + size > 10:  # Check if the ship fits horizontally on the board.
-                return False
-            for i in range(size):
-                if col + i >= 10 or self.board[row][col + i] != 0:  # Check if the ship overlaps with existing ships.
-                    return False
-            for i in range(size):
-                self.board[row][col + i] = size  # Place the ship on the board horizontally.
-        elif direction == 'V':
-            if row + size > 10:  # Check if the ship fits vertically on the board.
-                return False
-            for i in range(size):
-                if row + i >= 10 or self.board[row + i][col] != 0:  # Check if the ship overlaps with existing ships.
-                    return False
-            for i in range(size):
-                self.board[row + i][col] = size  # Place the ship on the board vertically.
+        if size != 1 and size != 2:
+            if size == 5:
+                # U-shaped ship
+                if direction == 'N':
+                    coords = [(row, col), (row, col-1), (row, col-2), (row-1, col), (row-1, col-2)]
+                elif direction == 'S':
+                    coords = [(row, col), (row, col+1), (row, col+2), (row+1, col), (row+1, col+2)]
+                elif direction == 'E':
+                    coords = [(row, col), (row-1, col), (row-2, col), (row, col+1), (row-2, col+1)]
+                elif direction == 'W':
+                    coords = [(row, col), (row+1, col), (row+2, col), (row, col-1), (row+2, col-1)]
+                else:
+                    return False  # Return False for invalid direction.
+            elif size == 4:
+                # S-shaped ship
+                if direction == 'N' or direction == 'S':
+                    coords = [(row, col), (row+1, col), (row+1, col+1), (row+2, col+1)]
+                elif direction == 'E' or direction == 'W':
+                    coords = [(row, col), (row, col+1), (row-1, col+1), (row-1, col+2)]
+                else:
+                    return False  # Return False for invalid direction.
+            elif size == 3:
+                # 3/4-square shaped ship
+                if direction == 'N':
+                    coords = [(row, col), (row+1, col), (row+1, col+1)]
+                elif direction == 'S':
+                    coords = [(row, col), (row-1, col), (row-1, col-1)]
+                elif direction == 'E':
+                    coords = [(row, col), (row, col-1), (row+1, col-1)]
+                elif direction == 'W':
+                    coords = [(row, col), (row, col+1), (row-1, col+1)]
+                else:
+                    return False  # Return False for invalid direction.
         else:
-            return False  # Return False for invalid direction.
+            # Handle regular horizontal or vertical placement for size 1 and 2
+            if size == 1:
+                direction = 'H'  # For a 1x1 ship, direction is irrelevant
+            if direction == 'H':
+                coords = [(row, col + i) for i in range(size)]
+            elif direction == 'V':
+                coords = [(row + i, col) for i in range(size)]
+            else:
+                return False  # Invalid direction
 
-        self.ships.append((position, size, direction))  # Add the ship details to the player's ships list.
+        # Check if ship placement is valid (within bounds and no overlap)
+        for r, c in coords:
+            if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0:
+                return False  # Ship goes out of bounds or overlaps
+
+        # Place the ship
+        for r, c in coords:
+            self.board[r][c] = size
+
+        self.ships.append((coords, size))  # Record the ship's coordinates and size
         return True
 
     def receive_shot(self, position):
@@ -128,9 +166,39 @@ class Interface:
         print("|       Welcome to Battleship!       |")  # Greet the players.
         print("+====================================+")
         print()
+
+        self.query_mode() # Ask if playing AI or another player
         self.setup_player(self.player1, "Player 1")  # Setup Player 1's board.
-        self.setup_player(self.player2, "Player 2")  # Setup Player 2's board.
+        if not self.playing_ai: # If not playing an AI
+            self.setup_player(self.player2, "Player 2")  # Setup Player 2's board.
+        else: # If playing an AI
+            self.player2.is_ai = True # Set the player's is_ai bool to be true
+            self.query_ai_difficulty(self.player2) # Ask user for the difficulty to make the AI
+            self.setup_player(self.player2, "Player 2 (AI)") # Setup AI player 2's board
         self.play_game()  # Start the game loop.
+
+    def query_mode(self):
+        """Ask player for gamemode"""
+
+        while True: # Loop while getting user input
+            playing_cpu = input("Play against CPU? (y/n): ").lower() # Ask user how many human players there will be
+            if playing_cpu not in ['yes', 'y', 'no', 'n']: # Check for a valid input
+                print("Invalid response. Input 'y' or 'n'") # Print error message if input was not valid
+            else: # If valid input
+                self.playing_ai = playing_cpu[0]=='y' # Set self.playing_ai boolean to be true if the user typed in a 'yes' or a 'y'
+                break # Break out of loop
+
+    def query_ai_difficulty(self, ai_player: Player):
+        """Ask human player what difficulty to make the AI that they will be playing against"""
+        
+        while True: # Loop while getting input
+            difficulty = input("What difficulty level should the AI be? Easy(e), Medium(m), or Hard(h): ").lower() # Ask user what difficutly to make AI (and make lowercase)
+            if difficulty not in ['easy', 'e', 'medium', 'm', 'hard', 'h']: # If the response is not valid
+                print("Invalid difficulty selected for the AI. Respond with 'e', 'm', or 'h' for Easy, Medium, or Hard difficulties respectively") # Print out error message
+            else: # If response was valid
+                ai_player.difficulty = difficulty[0] # Set ai Player's difficulty to be 'e', 'm', or 'h'
+                break # Break out of loop
+
 
     def setup_player(self, player, name):
         """Guide a player through placing their ships."""
@@ -145,6 +213,7 @@ class Interface:
             num_ships = self.num_ships_to_place  # Player 2 places the same number of ships.
         
         # Inform the player how many ships they will be placing
+        # if not player.is_ai:
         print("+=========================================+")
         print(f"|  {name}, you will be placing {num_ships} ships. |")
         print("+=========================================+")
@@ -153,7 +222,7 @@ class Interface:
 
         for size in range(1, num_ships + 1):
             self.place_ship(player, size)  # Place each ship on the board.
-        self.clear_terminal_with_countdown()  # Clear the terminal after ship placement.
+        self.clear_terminal()  # Clear the terminal after ship placement.
 
     def get_number_of_ships(self):
         """Get the number of ships from the player."""
@@ -174,24 +243,34 @@ class Interface:
         player.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
         print(f"Placing your 1x{size} ship:")  # Prompt the player to place a ship of given size.
         while True:
-            position = input(f"Enter the position (A-J, 1-10) for your {size}x{size} ship: ").strip().upper()  # Prompt for ship position.
-            if size > 1:
-                direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()  # Prompt for ship direction if size > 1.
-            else:
-                direction = None  # No need for direction if the ship size is 1x1.
+            if not player.is_ai: # If the player is a human
+                position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
+                if size <= 2:
+                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()
+                else:
+                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper()
+            else: # If the player is an AI
+                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position # TODO: debugging
+                if size <= 2:
+                    direction = f"{random.choice('HV')}"# TODO: debugging
+                else:
+                    direction = f"{random.choice('NSEW')}"# TODO: debugging
+                print("AI randomly chose position =", position) # TODO: debugging
             
-            if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V') or direction is None): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
+            if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
                 if player.place_ship(size, position, direction):
+                    # if not player.is_ai: 
                     print()
                     player.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
                     break  # Break the loop if the ship is placed successfully.
                 else:
-                    print(f"Error placing {size}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
+                    # if not player.is_ai: # Only print if player is a human
+                    print(f"Error placing {1}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
             else:
                 if not re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                    print(f"Invalid position format. Please use format like A1, B2 for your {size}x{size} ship.")  # Notify of position format error.
+                    print(f"Invalid position format. Please use format like A1, B2 for your {1}x{size} ship.")  # Notify of position format error.
                 if size > 1 and direction not in ('H', 'V'):
-                    print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {size}x{size} ship.")  # Notify of direction error.
+                    print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {1}x{size} ship.")  # Notify of direction error.
 
     def play_game(self):
         """Main game loop."""
@@ -201,13 +280,13 @@ class Interface:
             if self.take_shot(self.opponent):
                 break  # End the game if there is a winner.
             self.switch_players()  # Switch to the other player.
-            self.clear_terminal_with_countdown()  # Clear the terminal before the next turn.
+            self.clear_terminal()  # Clear the terminal before the next turn.
 
     def print_boards(self):
         """Print both the current player's and the opponent's boards."""
         print()
         print("+======================+")
-        print(f"\n{self.get_current_player_name()}'s board:")  # Print the current player's board.
+        print(f"| {self.get_current_player_name()}'s board:    |")  # Print the current player's board.
         print("+======================+")
         self.current_player.print_board(reveal_ships=True)
 
@@ -220,23 +299,72 @@ class Interface:
     def take_shot(self, opponent):
         """Handle a shot taken by the current player at the opponent's board."""
         while True:
-            position = input(f"Enter your shot (A-J, 1-10): ").strip().upper()  # Prompt for the shot position.
-            if re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                result = opponent.receive_shot(position)  # Process the shot and get the result.
-                
-                if result == 'Already Shot':
-                    print("You've already shot at this position. Try again.")  # Notify of repeated shot.
-                    continue  # Continue asking for a valid shot.
-                
-                if result == 'Hit':
-                    print("Hit!")  # Notify of a hit.
-                elif result == 'Miss':
-                    print("Miss.")  # Notify of a miss.
-                elif result == 'Sunk':
-                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Notify of a sunk ship.
-                return self.check_winner()  # Check for a winner after the shot.
+            # If player taking the shot is NOT an AI
+            if not self.current_player.is_ai:
+                position = input(f"Enter your shot (A-J, 1-10): ").strip().upper()  # Prompt for the shot position.
+                if re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression logic
+                    result = opponent.receive_shot(position)  # Process the shot and get the result.
+                    
+                    if result == 'Already Shot':
+                        print("You've already shot at this position. Try again.")  # Notify of repeated shot.
+                        continue  # Continue asking for a valid shot.
+                    
+                    if result == 'Hit':
+                        print("Hit!")  # Notify of a hit.
+                    elif result == 'Miss':
+                        print("Miss.")  # Notify of a miss.
+                    elif result == 'Sunk':
+                        print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Notify of a sunk ship.
+                    return self.check_winner()  # Check for a winner after the shot.
+                else:
+                    print("Invalid input format or out of bounds. Please use format like A1, B2.")  # Notify of an invalid shot position.
+
+            # If player taking shot IS an AI
             else:
-                print("Invalid input format or out of bounds. Please use format like A1, B2.")  # Notify of an invalid shot position.
+                # Easy mode - randomly choose location and shoot at it
+                if self.current_player.difficulty == 'e':
+                    position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}"  # Randomly select a position 
+                    print(f"AI chose position {position} to shoot.")  # Display AI's shot position
+                    
+                    result = opponent.receive_shot(position)  # Process the shot and get the result.
+                    if result == 'Already Shot':
+                        print("AI already shot at this position. Trying again.")
+                        continue  # Continue asking for a valid shot.
+                    
+                    if result == 'Hit': 
+                        self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
+                        print(f"AI Hit at {position}!")  
+                    elif result == 'Miss': 
+                        self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
+                        print(f"AI Missed at {position}.")  
+                    elif result == 'Sunk':
+                        self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship 
+                        print(f"AI Hit! Ship size {self.get_ship_size_at(position)}. Sunk at {position}!")
+                    
+                    input("\nPress Enter to continue to the next player's turn...")  # Wait for the user to acknowledge the AI's move.
+                    return self.check_winner()  # Check for a winner after the shot.
+
+
+    def get_orthogonal_points(self, hit_location: str) -> list:
+        """Get positions orthogonal to the 'hit_location'"""
+
+        cols = "ABCDEFGHIJ" # String of the possible columns
+        hit_col_inx = cols.index(hit_location[0]) # Get the index of the column where the hit was
+        hit_row = int(hit_location[1:]) # Get the row number of the hit
+
+        ortho_points = [] # Create a list to store the points orthogonal
+        if hit_col_inx > 0: # Check there is a column to the LEFT the point being checked
+            ortho_points.append(f"{cols[hit_col_inx-1]}{hit_row}") # Add position to the LEFT to list of orthogonal points
+        if hit_col_inx < 9: # Check there is a column to the RIGHT of the point being checked
+            ortho_points.append(f"{cols[hit_col_inx+1]}{hit_row}") # Add position to the RIGHT to list of orthogonal points
+        if hit_row > 1: # Check there is a row ABOVE the point being checked
+            ortho_points.append(f"{cols[hit_col_inx]}{hit_row-1}") # Add position ABOVE to list of orthogonal points
+        if hit_row < 10: # Check there is a row below the point being checked
+            ortho_points.append(f"{cols[hit_col_inx]}{hit_row+1}") # Add position BELOW to the list of orthogonal points
+
+        return ortho_points
+
+            
 
     def get_ship_size_at(self, position):
         """Get the size of the ship at a specific position."""
@@ -251,41 +379,41 @@ class Interface:
 
     def check_winner(self):
         """Check if the game has a winner."""
-        # Calculate the total number of ship cells based on placed ships.
-        total_ship_cells = sum(size for _, size, _ in self.opponent.ships)
+        total_ship_cells = sum(size for _, size, _ in self.opponent.ships)  # Calculate total number of ship cells.
 
-        # Compare the number of unique hits to the total number of ship cells.
-        if len(self.opponent.hits) == total_ship_cells:
-            print(f"{self.get_current_player_name()} wins!")  # Announce the winner.
-            winner = self.get_current_player_number() #gets current player
-            updateSave(winner)
-            #
+        if len(self.opponent.hits) == total_ship_cells:  # Compare unique hits to total ship cells.
+            winner_name = self.get_current_player_name()
+            
+            if winner_name == "Player 1":
+                print(f"Player 1 wins!")
+                updateSave(0)  # Update save for Player 1
+            elif winner_name == "Player 2":
+                print(f"Player 2 wins!")
+                updateSave(1)  # Update save for Player 2
+            else:
+                print(f"CPU wins!")
+                updateSave(2)  # Update save for CPU
+            
+            printScoreBoard()  # Show the updated scoreboard
+            return True  # Return True to indicate game is over
+        return False  # No winner yet, return False
 
-
-            # add scoreboard stuff here
-
-
-            #
-            return True  # Return True to indicate the game is won.
-        return False  # Return False if no winner yet.
 
     def get_current_player_name(self):
         """Get the name of the current player."""
-        return "Player 1" if self.current_player == self.player1 else "Player 2"  # Return Player 1 or Player 2 based on the current player.
+        if self.current_player.is_ai:
+            return "CPU"  # Return "CPU" for AI player
+        return "Player 1" if self.current_player == self.player1 else "Player 2"  # Return Player 1 or Player 2 based on the current player
 
     def get_current_player_number(self):
-        """Get the number of the current player."""
         return 0 if self.current_player == self.player1 else 1 if self.current_player == self.player2 else 2  # Return 1 or 2 based on the current player.
     
     def switch_players(self):
         """Switch the current player and the opponent."""
         self.current_player, self.opponent = self.opponent, self.current_player  # Swap the current player and opponent.
 
-    def clear_terminal_with_countdown(self):
-        """Clear the terminal and show a countdown before changing turns."""
-        for i in range(5, 0, -1):
-            print(f"Changing turns in {i} seconds...", end='\r')  # Display countdown for 5 seconds.
-            time.sleep(1)  # Wait for 1 second.
+    def clear_terminal(self):
+        """Clear the terminal before changing tyurns."""
         os.system('cls' if os.name == 'nt' else 'clear')  # Clear the terminal based on the operating system.
         input("\nPress Enter to continue to the next player's turn...")  # Pause for user input to continue.
         print()
