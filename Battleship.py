@@ -74,6 +74,8 @@ class Interface:
 
         print()
 
+        player.print_board()
+
         for size in range(1, num_ships + 1):
             player.place_ship(size)  # Place each ship on the board.
 

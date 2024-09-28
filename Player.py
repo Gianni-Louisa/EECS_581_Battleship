@@ -30,8 +30,6 @@ class Player:
         current_ship = Ship() # Initialize a new ship
         current_ship.size = size # Add the size property to the ship
         print()
-        if not self.is_ai: # Make sure we don't reveal the AI board
-            self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
         print(f"Placing your 1x{size} ship:")  # Prompt the player to place a ship of given size.
         while True:
             if not self.is_ai: # If the player is a human
@@ -60,7 +58,6 @@ class Player:
                 if valid_placement: # Convert the position to a coordinate and set the ship's coordinate, checking if valid
                     # if not player.is_ai: 
                     print()
-                    self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
                     break  # Break the loop if the ship is placed successfully.
                 else:
                     # if not player.is_ai: # Only print if player is a human
@@ -75,6 +72,10 @@ class Player:
             self.board[r][c] = size #add numbers the board equal to the total size of the ship
 
         self.ships.append(current_ship)  #record the ship's coordinates and size
+
+        if not self.is_ai: # Make sure we don't reveal the AI board
+            self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
+
         return True
     
 #end of team, chat gpt, and previous team authored
