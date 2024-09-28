@@ -193,8 +193,10 @@ class Interface:
 
     def check_winner(self):
         """Check if the game has a winner."""
-        #total_ship_cells = sum(size for _, size, _ in self.opponent.ships)  # Calculate total number of ship cells.
-        total_ship_cells = 1
+        total_ship_cells = 0
+        for ship in self.opponent.ships: # Iterate through opponents ships to calculate total number of ship cells
+            for coordinate in ship.coordinates: # Iterate through the coordinates and count how many
+                total_ship_cells += 1 # Add the count to the total count
 
         if len(self.opponent.hits) == total_ship_cells:  # Compare unique hits to total ship cells.
             winner_name = self.get_current_player_name()
