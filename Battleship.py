@@ -3,149 +3,8 @@ import os  # Import the operating system module for clearing the terminal.
 import time  # Import the time module for implementing delays.
 import random
 from SaveGame import *
-
-class Player:
-    def __init__(self):
-        # Initialize a 10x10 board filled with zeros to represent empty cells.
-        self.board = [[0]*10 for _ in range(10)]  
-        # List to keep track of the ships placed by the player.
-        self.ships = []  
-        # Set to keep track of hit positions.
-        self.hits = set()  
-        # Set to keep track of miss positions.
-        self.misses = set()  
-        # Bool to set the Player to be an AI
-        self.is_ai = False
-        # A string to track where the player hit on their previous turn (equal to None if player did not get a hit on the previous turn, otherwise it is the location of the hit)
-        self.previous_turn_hit_location = None
-        # A list to store points orthogonal to a hit point 
-        self.orthogonal_points_to_shoot = None
-#start of team, chat gpt, and previous team authored
-    def place_ship(self, size, position, direction=None):
-        """Place a ship on the board."""
-        col, row = self.convert_position_to_indices(position)  # Convert the position to board indices
-
-        if size != 1 and size != 2: #sets up the unique ship shapes for ships 3-5
-            if size == 5: #U-shaped ship
-                if direction == 'N': #ships is an actual U
-                    coords = [(row, col), (row, col-1), (row, col-2), (row-1, col), (row-1, col-2)] #sets up the ship starting from the bottom right of the u
-                elif direction == 'S': #the U shape is flipped upside down
-                    coords = [(row, col), (row, col+1), (row, col+2), (row+1, col), (row+1, col+2)] #sets up the ship starting from the top left of the upside down u
-                elif direction == 'E': #the U shape is 90 degrees to the right
-                    coords = [(row, col), (row-1, col), (row-2, col), (row, col+1), (row-2, col+1)] #sets up the ship starting from the bottom left of the right rotated u
-                elif direction == 'W': #the U shape is 90 degrees to the left
-                    coords = [(row, col), (row+1, col), (row+2, col), (row, col-1), (row+2, col-1)] #sets up the ship starting from the top right of the left rotated u
-                else:
-                    return False  # Return False for invalid direction.
-            elif size == 4: #S-shaped ship
-                if direction == 'N' or direction == 'S': #the S shape is rotated 90 degrees to the right
-                    coords = [(row, col), (row+1, col), (row+1, col+1), (row+2, col+1)] #sets up the ship starting from the top of the rotated s
-                elif direction == 'E' or direction == 'W': #the ship is an actual S
-                    coords = [(row, col), (row, col+1), (row-1, col+1), (row-1, col+2)] #sets up the ship starting from the bottom left of the s
-                else:
-                    return False  # Return False for invalid direction.
-            elif size == 3: # 3/4-square shaped ship
-                if direction == 'N': #the square is missing its top right corner
-                    coords = [(row, col), (row+1, col), (row+1, col+1)] #sets up the ship starting from the top of the shape
-                elif direction == 'S': #the square is missing its bottom left corner
-                    coords = [(row, col), (row-1, col), (row-1, col-1)] #sets up the ship starting from the bottom of the shape
-                elif direction == 'E': #the square is missing its bottom right corner
-                    coords = [(row, col), (row, col-1), (row+1, col-1)] #sets up the ship starting from the top right of the shape
-                elif direction == 'W': #the square is missing its top left corner
-                    coords = [(row, col), (row, col+1), (row-1, col+1)] #sets up the ship starting from the bottom left of the ship
-                else:
-                    return False  # Return False for invalid direction.
-        else:
-            # Handle regular horizontal or vertical placement for size 1 and 2
-            if size == 1: #ship size is 1
-                direction = 'H'  # For a 1x1 ship, direction is irrelevant
-            if direction == 'H': #ship is being placed horizontally
-                coords = [(row, col + i) for i in range(size)] #place the ship starting from the left of the shape
-            elif direction == 'V': #ship is being placed vertically
-                coords = [(row + i, col) for i in range(size)] #place the ship starting from the top of the shape
-            else:
-                return False  # Invalid direction
-
-        for r, c in coords: #Check if ship placement is valid (within bounds and no overlap)
-            if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0: #checking bondaries and overlap
-                return False  # Ship goes out of bounds or overlaps
-
-        for r, c in coords: #place the ship on the board
-            self.board[r][c] = size #add numbers the board equal to the total size of the ship
-
-        self.ships.append((coords, size))  #record the ship's coordinates and size
-        return True
-#end of team, chat gpt, and previous team authored
-    def receive_shot(self, position):
-        """Receive a shot on the board and return the result."""
-        col, row = self.convert_position_to_indices(position)  # Convert the shot position to board indices.
-        
-        # Check if the shot has already been made
-        if position in self.hits or position in self.misses:
-            return 'Already Shot'  # Notify that the position has already been shot at
-        
-        cell_Value = self.board[row][col]
-
-        if cell_Value != 0 and position not in self.hits:
-            self.hits.add(position)
-            
-            sunk = True
-
-            for i in range(10):
-                for j in range(10):
-                    if self.board[i][j] == cell_Value:
-                        if ( str( chr(j + ord("A")) ) + str(i+1) ) not in self.hits:
-                            sunk = False
-            if sunk:
-                return 'Sunk'
-            else:
-                return 'Hit'
-        else:
-            self.misses.add(position)
-            return 'Miss'
-
-
-    def print_board(self, reveal_ships=False):
-        """Print the board. If reveal_ships is True, show ships."""
-        # Print column labels from A to J.
-        print("   " + " ".join(chr(ord('A') + i) for i in range(10)))
-        for i in range(10):
-            # Print the row label and the data for each cell in the row.
-            row_index = i + 1
-            if row_index < 10:
-                row = str(i + 1) + "  "
-            else:
-                row = str(i + 1) + " "
-            for j in range(10):
-                if reveal_ships:
-                    position = chr(ord('A') + j) + str(i + 1)
-                    cell = self.board[i][j]
-                    if position in self.hits:
-                        row += "X "  # Print an 'X' for hit positions.
-                    elif position in self.misses:
-                        row += "O "  # Print an 'O' for miss positions.
-                    else:
-                        if cell == 0:
-                            row += ". "  # Print a dot for unexplored positions.
-                        else:
-                            row += str(cell) + " "
-                else:
-                    position = chr(ord('A') + j) + str(i + 1)
-                    if position in self.hits:
-                        row += "X "  # Print an 'X' for hit positions.
-                    elif position in self.misses:
-                        row += "O "  # Print an 'O' for miss positions.
-                    else:
-                        row += ". "  # Print a dot for unexplored positions.
-            print(row)
-        print()
-
-    def convert_position_to_indices(self, position):
-        """Convert board position from letter-number format to indices."""
-        col = ord(position[0]) - ord('A')  # Convert column letter to index (0-9).
-        row = int(position[1:]) - 1  # Convert row number to index (0-9).
-        return col, row  # Return the column and row indices.
-
+from Player import Player
+from Common import convert_position_to_indices
 
 class Interface:
     def __init__(self):
@@ -216,7 +75,7 @@ class Interface:
         print()
 
         for size in range(1, num_ships + 1):
-            self.place_ship(player, size)  # Place each ship on the board.
+            player.place_ship(size)  # Place each ship on the board.
         self.clear_terminal()  # Clear the terminal after ship placement.
 
     def get_number_of_ships(self):
@@ -231,42 +90,7 @@ class Interface:
                     print("Please enter a number between 1 and 5.")  # Prompt for a valid number.
             except ValueError:
                 print("Invalid input. Please enter a number.")  # Handle non-numeric input.
-#start of team, chat gpt, and previous steam authored
-    def place_ship(self, player, size):
-        """Guide the player through placing a single ship on their board."""
-        print()
-        player.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
-        print(f"Placing your 1x{size} ship:")  # Prompt the player to place a ship of given size.
-        while True:
-            if not player.is_ai: # If the player is a human
-                position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
-                if size <= 2: #runs if the ship is size 1 or 2
-                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper() #asks the user if they want their ship to be placed vertically or horizontally
-                else: #runs if ship size is 3,4, or 5
-                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper() #asks the user which orientation they want their ship to be in
-            else: # If the player is an AI
-                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position # TODO: debugging
-                if size <= 2:
-                    direction = f"{random.choice('HV')}"#chooses a random orientation# TODO: debugging
-                else:
-                    direction = f"{random.choice('NSEW')}"#chooses a random orientation# TODO: debugging
-                print("AI randomly chose position =", position) # TODO: debugging
-            
-            if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                if player.place_ship(size, position, direction):
-                    # if not player.is_ai: 
-                    print()
-                    player.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
-                    break  # Break the loop if the ship is placed successfully.
-                else:
-                    # if not player.is_ai: # Only print if player is a human
-                    print(f"Error placing {1}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
-            else:
-                if not re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                    print(f"Invalid position format. Please use format like A1, B2 for your {1}x{size} ship.")  # Notify of position format error.
-                if size > 1 and direction not in ('H', 'V', 'N', 'S', 'E', 'W'):
-                    print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {1}x{size} ship.")  # Notify of direction error.
-#end of team, chat gpt, and previous steam authored
+
     def play_game(self):
         """Main game loop."""
         while True:
@@ -359,22 +183,18 @@ class Interface:
 
         return ortho_points
 
-            
-
     def get_ship_size_at(self, position):
         """Get the size of the ship at a specific position."""
-        col, row = self.convert_position_to_indices(position)  # Convert position to board indices.
-        for (pos, size, direction) in self.opponent.ships:
-            ship_col, ship_row = self.convert_position_to_indices(pos)  # Convert ship position to board indices.
-            if direction == 'H' and ship_row == row and ship_col <= col < ship_col + size:
-                return size  # Return the size if the ship is placed horizontally and the position is valid.
-            if direction == 'V' and ship_col == col and ship_row <= row < ship_row + size:
-                return size  # Return the size if the ship is placed vertically and the position is valid.
+        col, row = convert_position_to_indices(position)  # Convert position to board indices.
+        for ship in self.opponent.ships:
+            if (col, row) in ship.coordinates:
+                return ship.size  # Return the size if the position is valid.
         return 0  # Return 0 if no ship is found at the position.
 
     def check_winner(self):
         """Check if the game has a winner."""
-        total_ship_cells = sum(size for _, size, _ in self.opponent.ships)  # Calculate total number of ship cells.
+        #total_ship_cells = sum(size for _, size, _ in self.opponent.ships)  # Calculate total number of ship cells.
+        total_ship_cells = 1
 
         if len(self.opponent.hits) == total_ship_cells:  # Compare unique hits to total ship cells.
             winner_name = self.get_current_player_name()
@@ -413,12 +233,6 @@ class Interface:
         input("\nPress Enter to continue to the next player's turn...")  # Pause for user input to continue.
         print()
         # print("\n" + "="*40)  # Print a separator line for clarity.
-
-    def convert_position_to_indices(self, position):
-        """Convert board position from letter-number format to indices."""
-        col = ord(position[0]) - ord('A')  # Convert column letter to index (0-9).
-        row = int(position[1:]) - 1  # Convert row number to index (0-9).
-        return col, row  # Return the column and row indices.
 
 if __name__ == "__main__":
     game = Interface()  # Create an instance of the Interface class.
