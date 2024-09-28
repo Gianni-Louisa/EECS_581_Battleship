@@ -1,6 +1,12 @@
-'''
+"""
+Player.py
+A player class to keep track of the battleship players and their attributes
+Inputs: nothing
+Outputs: nothing
+Other sources of code: chatgpt
+Authors: Previous Team and Connor Bennudriti, Brinley Hull, Gianni Louisa, Kyle Moore, Ben Renner
 Creation date: 9/28/24
-'''
+"""
 
 import re  # Import the regular expressions module for pattern matching Logic based on chatgpt query and research due to the first time implementing regular expression logic.
 import random
@@ -50,7 +56,7 @@ class Player:
             
             if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
                 current_ship.direction = direction # Set the ship's direction
-                valid_placement = current_ship.add_coordinate(position) # Set the ship's coordinate
+                valid_placement = current_ship.set_coordinates(position) # Set the ship's coordinate
                 for r, c in current_ship.coordinates: #Check if ship placement is valid (within bounds and no overlap)
                     if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0: #checking bondaries and overlap
                         valid_placement = False

@@ -1,4 +1,10 @@
 """
+Common.py
+A space to write common functions used by all the classes at once
+Inputs: nothing
+Outputs: nothing
+Other sources of code: chatgpt
+Authors: Previous Team and Connor Bennudriti, Brinley Hull, Gianni Louisa, Kyle Moore, Ben Renner
 Creation date: 9/28/24
 """
 

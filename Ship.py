@@ -1,16 +1,24 @@
-'''
+"""
+Ship.py
+A ship class to keep track of ship attributes for a player's ships
+Inputs: nothing
+Outputs: nothing
+Other sources of code: chatgpt
+Authors: Previous Team and Connor Bennudriti, Brinley Hull, Gianni Louisa, Kyle Moore, Ben Renner
 Creation date: 9/28/24
-'''
+"""
 
-from Common import convert_position_to_indices
+from Common import convert_position_to_indices # Import the common functions
 
 class Ship:
     def __init__(self):
-        self.coordinates = []
-        self.size = -1
-        self.direction = "-1"
+        ''' Function to initialize a ship class instance '''
+        self.coordinates = [] # Coordinates of the ship as a list of tuples
+        self.size = -1 # Size of the ship as an int
+        self.direction = "-1" # Direction of the ship as a string
 
-    def add_coordinate(self, position):
+    def set_coordinates(self, position):
+        ''' Function to set the ship's coordinates to what the player passed in as a position '''
         col, row = convert_position_to_indices(position)  # Convert the position to board indices
 
         if self.size != 1 and self.size != 2: #sets up the unique ship shapes for ships 3-5
@@ -54,4 +62,4 @@ class Ship:
             else:
                 return False  # Invalid direction
             
-        return True
+        return True # Return that updating the ship's coordinates was successful

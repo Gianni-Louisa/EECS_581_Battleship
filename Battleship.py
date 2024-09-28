@@ -1,10 +1,20 @@
+"""
+Battleship.py
+A python base file to play battleship on console.
+Inputs: nothing
+Outputs: A functional battleship game!
+Other sources of code: chatgpt and unknown from previous team
+Authors: Previous Team and Connor Bennudriti, Brinley Hull, Gianni Louisa, Kyle Moore, Ben Renner
+Creation date: unknown from previous team
+"""
+
 import re  # Import the regular expressions module for pattern matching Logic based on chatgpt query and research due to the first time implementing regular expression logic.
 import os  # Import the operating system module for clearing the terminal.
 import time  # Import the time module for implementing delays.
-import random
-from SaveGame import *
-from Player import Player
-from Common import convert_position_to_indices
+import random # Import the random module
+from SaveGame import * # Import the scoreboard
+from Player import Player # Import the Player class
+from Common import convert_position_to_indices # Import the common functions
 
 class Interface:
     def __init__(self):
