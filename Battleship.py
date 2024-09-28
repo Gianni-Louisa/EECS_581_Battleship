@@ -76,6 +76,8 @@ class Interface:
 
         for size in range(1, num_ships + 1):
             player.place_ship(size)  # Place each ship on the board.
+
+        input("Press enter to continue...")
         self.clear_terminal()  # Clear the terminal after ship placement.
 
     def get_number_of_ships(self):
@@ -98,6 +100,7 @@ class Interface:
             print(f"{self.get_current_player_name()}'s turn:")  # Announce the current player's turn.
             if self.take_shot(self.opponent):
                 break  # End the game if there is a winner.
+            input("Press enter to continue to the next player...") # Wait to see hit or miss announcement
             self.switch_players()  # Switch to the other player.
             self.clear_terminal()  # Clear the terminal before the next turn.
 
@@ -193,7 +196,7 @@ class Interface:
 
     def check_winner(self):
         """Check if the game has a winner."""
-        total_ship_cells = 0
+        total_ship_cells = 0 # Initialize the total ship cell count
         for ship in self.opponent.ships: # Iterate through opponents ships to calculate total number of ship cells
             for coordinate in ship.coordinates: # Iterate through the coordinates and count how many
                 total_ship_cells += 1 # Add the count to the total count
