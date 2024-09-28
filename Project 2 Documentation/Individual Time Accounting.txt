@@ -13,7 +13,7 @@ Brinley Hull
 9/22/24: Documentation, 30 minutes
 9/23/24: Coding, 30 minutes
 9/26/24: GTA Meeting, 15 minutes
-9/28/24: Coding & Testing, 2 hours
+9/28/24: Coding, Testing & Documentation, 2 hours
 
 Gianni Louisa
 9/19/24: GTA Meeting, 15 minutes
