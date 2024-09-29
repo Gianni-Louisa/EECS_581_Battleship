@@ -163,7 +163,6 @@ class Interface:
                     
                     result = opponent.receive_shot(position)  # Process the shot and get the result.
                     if result == 'Already Shot':
-                        print("AI already shot at this position. Trying again.")
                         continue  # Continue asking for a valid shot.
                     
                     if result == 'Hit': 
@@ -185,8 +184,7 @@ class Interface:
                         position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
                         print("Medium AI randomly chose position =", position, "to shoot") # TODO: remove
                         result = opponent.receive_shot(position) # Process the shot and get the result.
-                        if result == 'Already Shot': 
-                            print("already shot this position") # TODO: remove
+                        if result == 'Already Shot':
                             continue  # Continue asking for a valid shot.
                         if result == 'Hit': 
                             self.current_player.previous_turn_hit_location = position # Set the previous_turn_hit_location to the location that was just hit
@@ -210,8 +208,7 @@ class Interface:
                         shot_location = self.current_player.orthogonal_points_to_shoot.pop() # Get one of the orthogonal points to shoot while popping it from the list
                         print("AI shooting an orthogonal point: ", shot_location)
                         result = opponent.receive_shot(shot_location) # Shoot at location
-                        if result == 'Already Shot': 
-                            print("already shot this position") 
+                        if result == 'Already Shot':
                             continue  # Continue asking for a valid shot.
                         if result == 'Hit': 
                             self.current_player.previous_turn_hit_location = shot_location # Set the previous_turn_hit_location to the location that was just hit
