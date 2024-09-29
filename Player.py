@@ -87,8 +87,8 @@ class Player:
 
         self.ships.append(current_ship)  # Record the ship's coordinates and size
 
-        # if not self.is_ai:  # Make sure we don't reveal the AI board
-        self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
+        if not self.is_ai:  # Make sure we don't reveal the AI board
+            self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
 
         return True
 
