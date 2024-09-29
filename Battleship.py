@@ -79,19 +79,19 @@ class Interface:
         print("+=========================================+")
         print()
 
-        player.print_board()
+        player.print_board() # Print the player's board.
 
-        if player.is_ai:
+        if player.is_ai: # If the player is an AI
             # AI does not show placement details
-            print("AI is placing its ships...")
-            for size in range(1, num_ships + 1):
+            print("AI is placing its ships...") # Only show this message for AI
+            for size in range(1, num_ships + 1): # Loop through the number of ships to place
                 player.place_ship(size)  # Place each ship on the board.
             print("AI has placed its ships.")  # Only show this message for AI
-        else:
-            for size in range(1, num_ships + 1):
+        else: # If the player is not an AI
+            for size in range(1, num_ships + 1): # Loop through the number of ships to place
                 player.place_ship(size)  # Place each ship on the board.
 
-        input("Press enter to continue...")
+        input("Press enter to continue...") # Wait for the user to acknowledge the ship placement.
         self.clear_terminal()  # Clear the terminal after ship placement.
 
 
@@ -111,7 +111,7 @@ class Interface:
     def play_game(self):
         """Main game loop."""
         while True:
-            if not self.current_player.is_ai:
+            if not self.current_player.is_ai: # If the current player is not an AI
                 self.print_boards()  # Print both players' boards only if it's not the AI's turn
             print(f"{self.get_current_player_name()}'s turn:")
             if self.take_shot(self.opponent):
@@ -168,53 +168,53 @@ class Interface:
                     
                     result = opponent.receive_shot(position)  # Process the shot and get the result.
                     if result == 'Already Shot':
-                        print("AI already shot at this position. Trying again.")
+                        print("AI already shot at this position. Trying again.") # Notify of repeated shot.
                         continue  # Continue asking for a valid shot.
                     
                     if result == 'Hit': 
                         self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
-                        print(f"AI Hit at {position}!")  
+                        print(f"AI Hit at {position}!")  # Notify of a hit
                     elif result == 'Miss': 
                         self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
-                        print(f"AI Missed at {position}.")  
+                        print(f"AI Missed at {position}.")  # Notify of a miss
                     elif result == 'Sunk':
                         self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship 
-                        print(f"AI Hit! Ship size {self.get_ship_size_at(position)}. Sunk at {position}!")
+                        print(f"AI Hit! Ship size {self.get_ship_size_at(position)}. Sunk at {position}!") # Notify of a sunk ship
                     
                     input("\nPress Enter to continue to the next player's turn...")  # Wait for the user to acknowledge the AI's move.
                     return self.check_winner()  # Check for a winner after the shot.
                 
                 # Medium mode - randomly shoot until a hit, then shoot spaces orthogonal to hit location
-                elif self.current_player.difficulty == 'm':
+                elif self.current_player.difficulty == 'm': # If the AI is set to medium difficulty
                     if (self.current_player.previous_turn_hit_location is None) and (self.current_player.orthogonal_points_to_shoot is None): # If the AI did NOT hit a ship on the last turn, 
                         
                         position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
                         print("Medium AI randomly chose position =", position, "to shoot") # TODO: remove
                         result = opponent.receive_shot(position) # Process the shot and get the result.
-                        if result == 'Already Shot': 
+                        if result == 'Already Shot':  # If the position was already shot at
                             print("already shot this position") # TODO: remove
                             continue  # Continue asking for a valid shot.
-                        if result == 'Hit': 
+                        if result == 'Hit': # If the shot was a hit
                             self.current_player.previous_turn_hit_location = position # Set the previous_turn_hit_location to the location that was just hit
-                            print("Hit!")  # TODO: remove
-                        elif result == 'Miss': 
+                            print("Hit!")  # print
+                        elif result == 'Miss': # If the shot was a miss
                             self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI did not hit anything
                             print("Miss.")  # TODO: remove
-                        elif result == 'Sunk': 
+                        elif result == 'Sunk': # If the shot sunk a ship
                             self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
-                            print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!") # TODO: remove
+                            print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!") # print the size of the ship that was sunk
                         return self.check_winner() # Check for a winner after the shot.
                     
                     # If AI DID hit a ship on last turn or is going through points orthogonal to a hit
-                    else:
+                    else: # If the AI hit a ship on the last turn or is going through points orthogonal to a hit
                         # If have not started shooting at orthogonal points
-                        if self.current_player.orthogonal_points_to_shoot is None:
+                        if self.current_player.orthogonal_points_to_shoot is None: # If the AI has not started shooting at orthogonal points
                             orthogonal_point_locations = self.get_orthogonal_points(self.current_player.previous_turn_hit_location) # Get points orthogoanl to the last hit
-                            print(f"Points orthogonal to {self.current_player.previous_turn_hit_location} are: ", orthogonal_point_locations) # TODO: remove
+                            print(f"Points orthogonal to {self.current_player.previous_turn_hit_location} are: ", orthogonal_point_locations) #print the orthogonal points
                             self.current_player.orthogonal_points_to_shoot = orthogonal_point_locations # Set AI Player's orthogonal_points_to_shoot to be the points orthogonal 
                             # self.current_player.previous_turn_hit_location = None # Set AI PLayer previous_turn_hit_location to None 
                         shot_location = self.current_player.orthogonal_points_to_shoot.pop() # Get one of the orthogonal points to shoot while popping it from the list
-                        print("AI shooting an orthogonal point: ", shot_location)
+                        print("AI shooting an orthogonal point: ", shot_location) # print the point that the AI is shooting at
                         result = opponent.receive_shot(shot_location) # Shoot at location
                         if result == 'Already Shot': 
                             print("already shot this position") # TODO: remove
@@ -232,26 +232,26 @@ class Interface:
                             print(f"Hit! Ship size {self.get_ship_size_at(shot_location)}. Sunk!") # TODO: remove
                         return self.check_winner() # Check for a winner after the shot.
                 # Hard mode - never miss, shoot directly at ship locations
-                elif self.current_player.difficulty == 'h':
+                elif self.current_player.difficulty == 'h': # If the AI is set to hard difficulty
                     # Find the first cell that contains a ship that hasn't been hit yet
-                    for i in range(10):
-                        for j in range(10):
+                    for i in range(10):  # Loop through the rows
+                        for j in range(10): # Loop through the columns
                             position = f"{chr(ord('A') + j)}{i+1}"  # Convert the board indices to a position
                             if self.opponent.board[i][j] != 0 and position not in self.current_player.hits:  # Find unhit ship cells
                                 result = opponent.receive_shot(position)  # Shoot at the found ship cell
-                                print(f"Hard AI shot at {position}")  # TODO: remove
+                                print(f"Hard AI shot at {position}")  # Print the position that the AI shot at
                                 
-                                if result == 'Already Shot':
+                                if result == 'Already Shot': # If the position was already shot at
                                     continue  # If already shot, continue searching for another ship position
-                                if result == 'Hit':
+                                if result == 'Hit': # If the shot was a hit
                                     self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
-                                    print("Hit!")  # TODO: remove
-                                elif result == 'Miss':
+                                    print("Hit!")  # Print hit
+                                elif result == 'Miss': # If the shot was a miss
                                     self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
-                                    print("Miss.")  # TODO: remove
-                                elif result == 'Sunk':
+                                    print("Miss.") # Print miss
+                                elif result == 'Sunk': # If the shot sunk a ship
                                     self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship
-                                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # TODO: remove
+                                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # Print the size of the ship that was sunk
                                 
                                 return self.check_winner()  # Check for a winner after the shot
 
@@ -310,7 +310,7 @@ class Interface:
 
     def get_current_player_name(self):
         """Get the name of the current player."""
-        if self.current_player.is_ai:
+        if self.current_player.is_ai: # If the current player is an AI
             return "CPU"  # Return "CPU" for AI player
         return "Player 1" if self.current_player == self.player1 else "Player 2"  # Return Player 1 or Player 2 based on the current player
 
@@ -321,8 +321,8 @@ class Interface:
         """Switch the current player and the opponent."""
         self.current_player, self.opponent = self.opponent, self.current_player  # Swap the current player and opponent.
 
-    def clear_terminal(self):
-        """Clear the terminal before changing tyurns."""
+    def clear_terminal(self): # Clear the terminal
+        """Clear the terminal before changing tyurns.""" 
         os.system('cls' if os.name == 'nt' else 'clear')  # Clear the terminal based on the operating system.
         input("\nPress Enter to continue to the next player's turn...")  # Pause for user input to continue.
         print()
