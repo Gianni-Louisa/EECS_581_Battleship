@@ -233,21 +233,18 @@ class Interface:
                             position = f"{chr(ord('A') + j)}{i+1}"  # Convert the board indices to a position
                             if self.opponent.board[i][j] != 0 and position not in self.current_player.hits:  # Find unhit ship cells
                                 result = opponent.receive_shot(position)  # Shoot at the found ship cell
-                               
-                                
-                                if result == 'Already Shot':
+                                if result == 'Already Shot': # If the shot was already made
                                     continue  # If already shot, continue searching for another ship position
                                 print(f"Hard AI shot at {position}")  # Print the position that the AI shot at
                                 if result == 'Hit': # If the shot was a hit
                                     self.current_player.previous_turn_hit_location = position  # Set the previous_turn_hit_location to the location that was just hit
-                                    print("Hit!")  # TODO: remove
-                                elif result == 'Miss':
+                                    print("Hit!")  # print "Hit!"
+                                elif result == 'Miss': # If the shot was a miss
                                     self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI did not hit anything
-                                    print("Miss.")  # TODO: remove
-                                elif result == 'Sunk':
+                                    print("Miss.")  # print "Miss!"
+                                elif result == 'Sunk': # If the shot sunk a ship
                                     self.current_player.previous_turn_hit_location = None  # Set the previous_turn_hit_location to None since AI sunk the ship
-                                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  # TODO: remove
-                                
+                                    print(f"Hit! Ship size {self.get_ship_size_at(position)}. Sunk!")  #  print "Hit! Ship size {self.get_ship_size_at(position)}. Sunk!"
                                 return self.check_winner()  # Check for a winner after the shot
 
 
