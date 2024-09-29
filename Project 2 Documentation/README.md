@@ -58,7 +58,10 @@ We implemented an scoreboard system that allows players to track their wins and 
 
 ### 3. **New Ship Shapes**
 To add more variety and challenge to the gameplay, we introduced new ship shapes that deviate from the standard rectangular forms. These include dot, line, L shaped, S shaped, and U shaped.
+
+
 ![image](https://github.com/user-attachments/assets/fe95aada-a28d-4acd-990e-cc2b79476d93)
+
 
 
 #### How it works:
