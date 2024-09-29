@@ -66,31 +66,34 @@ class Interface:
 
     def setup_player(self, player, name):
         """Guide a player through placing their ships."""
-        #print(f"{name}, place your ships.")  # Prompt the player to place ships.
         
-        # Check if the current player is Player 1
         if player == self.player1:
-            print(f"{name}, place your ships.") # promt the player to place ships.
+            print(f"{name}, place your ships.")  # Prompt the player to place ships.
             num_ships = self.get_number_of_ships()  # Get the number of ships to place.
             self.num_ships_to_place = num_ships  # Store this value for Player 2 to use later.
         else:
             num_ships = self.num_ships_to_place  # Player 2 places the same number of ships.
-        
-        # Inform the player how many ships they will be placing
-        # if not player.is_ai:
+
         print("+=========================================+")
         print(f"|  {name}, you will be placing {num_ships} ships. |")
         print("+=========================================+")
-
         print()
 
         player.print_board()
 
-        for size in range(1, num_ships + 1):
-            player.place_ship(size)  # Place each ship on the board.
+        if player.is_ai:
+            # AI does not show placement details
+            print("AI is placing its ships...")
+            for size in range(1, num_ships + 1):
+                player.place_ship(size)  # Place each ship on the board.
+            print("AI has placed its ships.")  # Only show this message for AI
+        else:
+            for size in range(1, num_ships + 1):
+                player.place_ship(size)  # Place each ship on the board.
 
         input("Press enter to continue...")
         self.clear_terminal()  # Clear the terminal after ship placement.
+
 
     def get_number_of_ships(self):
         """Get the number of ships from the player."""
@@ -108,27 +111,30 @@ class Interface:
     def play_game(self):
         """Main game loop."""
         while True:
-            self.print_boards()  # Print both players' boards.
-            print(f"{self.get_current_player_name()}'s turn:")  # Announce the current player's turn.
+            if not self.current_player.is_ai:
+                self.print_boards()  # Print both players' boards only if it's not the AI's turn
+            print(f"{self.get_current_player_name()}'s turn:")
             if self.take_shot(self.opponent):
                 break  # End the game if there is a winner.
-            input("Press enter to continue to the next player...") # Wait to see hit or miss announcement
+            input("Press enter to continue to the next player...")  # Wait to see hit or miss announcement
             self.switch_players()  # Switch to the other player.
             self.clear_terminal()  # Clear the terminal before the next turn.
+
 
     def print_boards(self):
         """Print both the current player's and the opponent's boards."""
         print()
         print("+======================+")
-        print(f"| {self.get_current_player_name()}'s board:    |")  # Print the current player's board.
+        print(f"| {self.get_current_player_name()}'s board:    |")
         print("+======================+")
         self.current_player.print_board(reveal_ships=True)
 
         print()
         print("+======================+")
-        print("|  Opponent's board:   |")  # Print the opponent's board.
+        print("|  Opponent's board:   |")
         print("+======================+")
-        self.opponent.print_board()  
+        # Only show AI's shots on the opponent's board
+        self.opponent.print_board(show_shots_only=True)
 
     def take_shot(self, opponent):
         """Handle a shot taken by the current player at the opponent's board."""

@@ -33,56 +33,65 @@ class Player:
 
     def place_ship(self, size):
         """Place a ship on the board."""
-        current_ship = Ship() # Initialize a new ship
-        current_ship.size = size # Add the size property to the ship
+        current_ship = Ship()  # Initialize a new ship
+        current_ship.size = size  # Add the size property to the ship
         print()
-        print(f"Placing your 1x{size} ship:")  # Prompt the player to place a ship of given size.
-        while True:
-            if not self.is_ai: # If the player is a human
-                position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
-                if size == 1: # run if the ship is size 1
-                    direction = "H" #It doesn't matter what direction it is
-                elif size == 2: #runs if the ship is size 2
-                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper() #asks the user if they want their ship to be placed vertically or horizontally
-                else: #runs if ship size is 3,4, or 5
-                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper() #asks the user which orientation they want their ship to be in
-            else: # If the player is an AI
-                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position # TODO: debugging
+        
+        if self.is_ai:
+            # AI will place ships randomly without printing the placement details
+            for _ in range(size):  # Loop to place multiple ships if size is greater than 1
+                position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1, 10)}"  # Randomly select a position
                 if size <= 2:
-                    direction = f"{random.choice('HV')}"#chooses a random orientation# TODO: debugging
+                    direction = random.choice('HV')  # Randomly choose orientation for size 1 and 2 ships
                 else:
-                    direction = f"{random.choice('NSEW')}"#chooses a random orientation# TODO: debugging
-                print("AI randomly chose position =", position) # TODO: debugging
-            
-            if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                current_ship.direction = direction # Set the ship's direction
-                valid_placement = current_ship.set_coordinates(position) # Set the ship's coordinate
-                for r, c in current_ship.coordinates: #Check if ship placement is valid (within bounds and no overlap)
-                    if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0: #checking bondaries and overlap
+                    direction = random.choice('NSEW')  # Randomly choose orientation for larger ships
+
+                # Don't print AI's chosen position or direction
+                valid_placement = current_ship.set_coordinates(position)  # Set the ship's coordinate
+                for r, c in current_ship.coordinates:  # Check if ship placement is valid (within bounds and no overlap)
+                    if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0:  # Check boundaries and overlap
                         valid_placement = False
                         break
-                if valid_placement: # Convert the position to a coordinate and set the ship's coordinate, checking if valid
-                    # if not player.is_ai: 
-                    print()
-                    break  # Break the loop if the ship is placed successfully.
+                if valid_placement:
+                    break  # Break the loop if the ship is placed successfully
+        else:  # If the player is a human
+            print(f"Placing your {1}x{size} ship:")
+            while True:
+                position = input(f"Enter the position (A-J, 1-10) for your {1}x{size} ship: ").strip().upper()  # Prompt for ship position.
+                if size == 1:
+                    direction = "H"  # It doesn't matter what direction it is
+                elif size == 2:
+                    direction = input("Enter direction (H for horizontal, V for vertical): ").strip().upper()  # Prompt user for direction
                 else:
-                    # if not player.is_ai: # Only print if player is a human
-                    print(f"Error placing {1}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
-            else:
-                if not re.match(r'^[A-J](?:[1-9]|10)$', position): # Regular expression Logic based on chatgpt query and research due to first time implementing regular expression logic.
-                    print(f"Invalid position format. Please use format like A1, B2 for your {1}x{size} ship.")  # Notify of position format error.
-                if size > 1 and direction not in ('H', 'V', 'N', 'S', 'E', 'W'):
-                    print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {1}x{size} ship.")  # Notify of direction error.
+                    direction = input("Enter direction (N for north, S for south, E for east, W for west): ").strip().upper()  # Prompt user for direction
+                
+                if re.match(r'^[A-J](?:[1-9]|10)$', position) and (direction in ('H', 'V', 'N', 'S', 'E', 'W')):  # Validate input
+                    current_ship.direction = direction  # Set the ship's direction
+                    valid_placement = current_ship.set_coordinates(position)  # Set the ship's coordinate
+                    for r, c in current_ship.coordinates:  # Check if ship placement is valid
+                        if r >= 10 or c >= 10 or r < 0 or c < 0 or self.board[r][c] != 0:  # Check boundaries and overlap
+                            valid_placement = False
+                            break
+                    if valid_placement:  # Convert the position to a coordinate and set the ship's coordinate
+                        break  # Break the loop if the ship is placed successfully
+                    else:
+                        print(f"Error placing {1}x{size} ship: Check ship placement rules and try again.")  # Notify of placement error.
+                else:
+                    if not re.match(r'^[A-J](?:[1-9]|10)$', position):
+                        print(f"Invalid position format. Please use format like A1, B2 for your {1}x{size} ship.")  # Notify of position format error.
+                    if size > 1 and direction not in ('H', 'V', 'N', 'S', 'E', 'W'):
+                        print(f"Invalid direction. Please enter 'H' for horizontal or 'V' for vertical for your {1}x{size} ship.")  # Notify of direction error.
 
-        for r, c in current_ship.coordinates: #place the ship on the board
-            self.board[r][c] = size #add numbers the board equal to the total size of the ship
+        for r, c in current_ship.coordinates:  # Place the ship on the board
+            self.board[r][c] = size  # Add numbers to the board equal to the total size of the ship
 
-        self.ships.append(current_ship)  #record the ship's coordinates and size
+        self.ships.append(current_ship)  # Record the ship's coordinates and size
 
-        if not self.is_ai: # Make sure we don't reveal the AI board
+        if not self.is_ai:  # Make sure we don't reveal the AI board
             self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
 
         return True
+
     
 #end of team, chat gpt, and previous team authored
     def receive_shot(self, position):
@@ -114,8 +123,8 @@ class Player:
             return 'Miss'
 
 
-    def print_board(self, reveal_ships=False):
-        """Print the board. If reveal_ships is True, show ships."""
+    def print_board(self, reveal_ships=False, show_shots_only=False):
+        """Print the board. If reveal_ships is True, show ships. If show_shots_only is True, only show shots."""
         # Print column labels from A to J.
         print("   " + " ".join(chr(ord('A') + i) for i in range(10)))
         for i in range(10):
@@ -126,8 +135,17 @@ class Player:
             else:
                 row = str(i + 1) + " "
             for j in range(10):
-                if reveal_ships:
-                    position = chr(ord('A') + j) + str(i + 1)
+                position = chr(ord('A') + j) + str(i + 1)  # Get the position (e.g., A1, B2)
+                if show_shots_only:
+                    # Display only the shots taken (hits/misses) for the AI opponent
+                    if position in self.hits:
+                        row += "X "  # Print an 'X' for hit positions.
+                    elif position in self.misses:
+                        row += "O "  # Print an 'O' for miss positions.
+                    else:
+                        row += ". "  # Print a dot for unexplored positions.
+                elif reveal_ships:
+                    # Reveal ships on the board
                     cell = self.board[i][j]
                     if position in self.hits:
                         row += "X "  # Print an 'X' for hit positions.
@@ -137,9 +155,9 @@ class Player:
                         if cell == 0:
                             row += ". "  # Print a dot for unexplored positions.
                         else:
-                            row += str(cell) + " "
+                            row += str(cell) + " "  # Show ship number (or whatever identifier)
                 else:
-                    position = chr(ord('A') + j) + str(i + 1)
+                    # Standard view without revealing ships
                     if position in self.hits:
                         row += "X "  # Print an 'X' for hit positions.
                     elif position in self.misses:
@@ -148,6 +166,7 @@ class Player:
                         row += ". "  # Print a dot for unexplored positions.
             print(row)
         print()
+
 
     def convert_position_to_indices(self, position):
         """Convert board position from letter-number format to indices."""
