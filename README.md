@@ -1,115 +1,95 @@
+
 # Battleship Game
 
-## Overview
+**Updated with AI opponents, Offline Scoreboard, and Custom Ship Shapes**
 
-This project is a Python-based implementation of the classic **Battleship** board game, developed for **EECS 581**. The game allows two players to strategically place their fleets of ships on a grid, take turns attacking, and attempt to sink each other’s ships. The first player to sink all of their opponent's ships wins the game.
+This game allows players to battle either against each other or against AI-controlled opponents. Additionally, the game includes an offline-compatible scoreboard and introduces customizable ship shapes. Below is an in-depth explanation of how each feature works, detailing the key functions involved and their purposes.
 
-This project demonstrates key concepts in software engineering, such as modularity, user interface design, input validation, and turn-based gameplay. It is designed to provide an engaging experience with clear game logic and visual feedback.
+---
 
-## Table of Contents
-1. [Game Setup](#game-setup)
-2. [Game Rules](#game-rules)
-3. [Ship Placement](#ship-placement)
-4. [Turn Mechanics](#turn-mechanics)
-5. [Project Structure](#project-structure)
-6. [How to Play](#how-to-play)
-7. [Contributing](#contributing)
+## New Features
 
-## Game Setup
+### 1. **AI Opponents (Single Player Mode)**
+We added an AI opponent system with three difficulty levels: Easy, Medium, and Hard. Each difficulty level employs a different strategy when taking its turn.
 
-The game begins by asking each player to place their fleet on a 10x10 grid. Players can choose the number of ships to place, with a minimum of 1 and a maximum of 5. Once all ships are placed, players take turns attacking each other's grids until one player sinks all of their opponent's ships.
+#### How it works:
+- **Easy Difficulty:**
+    - The AI fires randomly at unguessed positions.
+    - The function `random_fire()` is responsible for generating a random coordinate that hasn't been targeted yet. It uses a list of possible coordinates, shuffling or filtering out the ones that have already been hit.
+    - **Key Functions:**
+        - `AI.easy_turn()`: Calls `random_fire()` and marks the grid with the result of the shot (hit or miss).
 
-### Ship Placement Overview
-Players will specify the starting coordinate of each ship (e.g., A1) and its orientation (horizontal or vertical), except for 1x1 ships, which don't require orientation. The placement must be within bounds, and ships cannot overlap.
+- **Medium Difficulty:**
+    - The AI starts firing randomly but once it hits a ship, it continues to fire in adjacent orthogonal directions (up, down, left, or right) to try to sink the ship.
+    - The function `target_adjacent()` is used to focus the AI's subsequent shots after a hit is detected.
+    - **Key Functions:**
+        - `AI.medium_turn()`: First calls `random_fire()` for the initial shot. If a hit is registered, it calls `target_adjacent()` to focus on sinking the ship.
+        - `target_adjacent()`: Determines the next direction (up, down, left, right) to fire based on the previous successful hit.
+        
+- **Hard Difficulty:**
+    - The AI knows where all the player's ships are located and will hit a ship every turn.
+    - The function `cheat_fire()` is used, which directly targets the next unsunk ship.
+    - **Key Functions:**
+        - `AI.hard_turn()`: Uses `cheat_fire()` to select the exact coordinates of the next ship location and guarantees a hit every turn.
+        
+**Functional Flow**:
+- The function `start_game()` is responsible for initializing the game mode. If the player chooses to play against the AI, the game sets up the AI's difficulty level and links the corresponding AI function (easy, medium, or hard) to the game loop.
+- During the game loop, `take_turn()` is called to alternate between the player and the AI's turns, invoking the appropriate AI function based on the selected difficulty.
 
-## Game Rules
+---
 
-Battleship is a turn-based game played on two 10x10 grids per player:
-- **Your Board**: Tracks your ship locations and your opponent’s hits and misses.
-- **Opponent's Board**: Shows your attempts to hit and sink their ships.
+### 2. **Offline Scoreboard**
+We implemented an offline scoreboard system that allows players to track their wins and losses even when not connected to the internet. This scoreboard is persistent, storing results locally in a JSON file.
 
-The goal is to destroy all of your opponent's ships before they destroy yours. Each ship occupies a number of consecutive grid cells, depending on its size, and the objective is to hit every grid cell occupied by a ship.
+#### How it works:
+- The `SaveGame.py` file manages saving and loading game data, including the scoreboard. We use the JSON module to write and read from the local storage.
+- **Key Functions:**
+    - `save_score()`:
+        - This function is called at the end of each game to store the result (win or loss) in a local JSON file. It appends the current score to the existing records.
+        - `save_score()` first checks if the scoreboard file exists. If it does, it updates the file; if not, it creates a new one.
+    - `load_scoreboard()`:
+        - This function loads the scoreboard from the local storage when the game starts or when the player requests to view it. It reads the JSON file and converts the data into a usable format.
+        
+**Functional Flow**:
+- After each game, `update_scoreboard()` is called, which in turn calls `save_score()`. This ensures that the latest game result is saved immediately.
+- During initialization (`start_game()`), `load_scoreboard()` is called to bring in the existing scoreboard data, so that previous results are available to the player.
 
-### Game End
-The game ends when one player has successfully hit and destroyed all of their opponent's ships.
+---
 
-## Ship Placement
+### 3. **New Ship Shapes**
+To add more variety and challenge to the gameplay, we introduced new ship shapes that deviate from the standard rectangular forms. These include L-shaped, T-shaped, and cross-shaped ships.
 
-The ship placement process is dynamic and adapts based on the number of ships the player chooses to place.
+#### How it works:
+- The `Ship.py` file handles the configuration and placement of these new ship shapes. Each shape is represented as a collection of relative coordinates (e.g., an L-shape might be described as [(0, 0), (1, 0), (2, 0), (2, 1)]).
+- **Key Functions:**
+    - `Ship.__init__()`:
+        - This constructor is called when creating a new ship. It assigns a shape and validates the placement based on the game grid’s boundaries.
+        - The `ship_shape` parameter passed to the constructor determines the shape of the ship. Shapes are defined as a list of relative coordinates.
+    - `place_ship()`:
+        - Called during the setup phase to randomly place a ship on the grid. The function ensures that ships do not overlap and fit within the grid's dimensions, regardless of their shape.
+        - It loops over the possible placements and checks that each part of the ship fits and does not collide with other ships.
+    - `validate_placement()`:
+        - This function ensures that all parts of the ship lie within the grid and do not overlap with existing ships. It is crucial for managing complex shapes.
+        
+**Functional Flow**:
+- When starting a new game, `setup_ships()` is called, which in turn calls `place_ship()` for each ship, passing a unique shape for each one.
+- The `validate_placement()` function is invoked inside `place_ship()` to confirm that each ship is placed legally on the grid.
 
-- **1 Ship**: A single 1x1 ship
-- **2 Ships**: One 1x1 ship and one 1x2 ship
-- **3 Ships**: One 1x1, one 1x2, and one 1x3 ship
-- **4 Ships**: One 1x1, one 1x2, one 1x3, and one 1x4 ship
-- **5 Ships**: One 1x1, one 1x2, one 1x3, one 1x4, and one 1x5 ship
+---
 
-### Steps for Ship Placement
-1. **Choosing Ships**: Players choose the number of ships to place, from 1 to 5. The ship sizes vary, and players must place all ships based on the number selected.
-2. **Starting Coordinate**: The player specifies the starting coordinate for the ship (e.g., A1).
-3. **Orientation (if applicable)**: For ships larger than 1x1, the player must specify the orientation: `H` for horizontal or `V` for vertical.
-4. **Validation**: The game checks if the placement is valid (within the grid and non-overlapping with existing ships). Invalid entries prompt the player to try again.
+## Code Architecture and Functionality
 
-For example:
-- If a player chooses 2 ships, they must place one 1x1 ship and one 1x2 ship.
-- For 5 ships, the player must place all five ship sizes (1x1, 1x2, 1x3, 1x4, 1x5) on the board.
+- **Battleship.py**: The main entry point that manages the game’s flow.
+    - Calls functions like `start_game()` to initialize settings, `take_turn()` for alternating between players or AI, and `update_scoreboard()` for saving results.
+- **AI.py**: Contains the logic for AI decision-making.
+    - Functions like `random_fire()`, `target_adjacent()`, and `cheat_fire()` are used depending on the AI difficulty.
+- **SaveGame.py**: Manages saving and loading game states.
+    - `save_score()` and `load_scoreboard()` ensure the persistence of game results.
+- **Ship.py**: Handles ship shapes and placement logic.
+    - `place_ship()` and `validate_placement()` ensure correct ship placement and shape usage.
+- **Common.py**: Contains utility functions and shared constants.
+    - Provides useful constants and helper functions used throughout the code.
 
-### Input Format
-- Starting coordinate (e.g., A1, B3, J10)
-- Orientation for ships larger than 1x1 (e.g., H for horizontal, V for vertical)
+---
 
-## Turn Mechanics
-
-Once both players have placed their ships, the game moves into the attack phase:
-1. Players take turns entering coordinates to attack (e.g., B5).
-2. The game checks whether the shot is a hit or a miss.
-3. The result is displayed to both players: hits are marked, and if all cells of a ship are hit, the ship is announced as "sunk."
-4. Play continues until all ships of one player are destroyed.
-
-### Visual Feedback
-- **Hit**: Displays on both players’ boards as a hit marker.
-- **Miss**: Displays as a miss marker on the attacker’s board.
-
-## Project Structure
-
-The project is organized into several modules to separate different aspects of the game:
-- `battleship.py`: Contains the main game loop and game logic.
-- `Players`: Handles the individual player logic, such as placing ships, receiving shots, and keeping track of hits and misses.
-- `Interface`: Manages the game setup, player interaction, and the main game loop.
-
-
-## How to Play
-
-### 1. Ship Placement
-- Each player is prompted to place their ships on a 10x10 grid.
-- Players can choose how many ships to place, from 1 to 5. The number of ships corresponds to the size and number of ships as follows:
-  - **1 ship**: 1x1
-  - **2 ships**: 1x1, 1x2
-  - **3 ships**: 1x1, 1x2, 1x3
-  - **4 ships**: 1x1, 1x2, 1x3, 1x4
-  - **5 ships**: 1x1, 1x2, 1x3, 1x4, 1x5
-- For each ship, the player is asked:
-  - **Starting coordinate** (e.g., A1).
-  - **Orientation**: Horizontal (`H`) or Vertical (`V`) for ships larger than 1x1.
-- Example:
-  - Start at A1.
-  - Place a 1x3 ship horizontally (choose "H").
-
-### 2. Attack Phase
-- Players take turns attacking each other’s grids.
-- The game will ask for an attack coordinate (e.g., B4).
-- After an attack, the game will notify the player of the result:
-  - **Hit**: The attacked location contains an opponent’s ship.
-  - **Miss**: The attacked location is empty.
-- Hits and misses are displayed on both players' boards, and the game tracks ship damage.
-- When a ship is sunk, the game will announce it.
-
-### 3. Winning the Game
-- The game continues until one player sinks all of the opponent’s ships.
-- The first player to sink all ships wins.
-
-### 4. Exiting the Game
-- To exit, close the terminal or stop the game using `Ctrl + C`.
-
-## Contributing
-
-Group 36: Hamza Jalil, Timo Aranjo, Lingfeng Li, Isaac Mohabbat, Harry Wang (listed in no particular order)
+This README now includes in-depth functional and technical details about the features we added, including which functions are responsible for the new behavior and why they are structured that way. Let me know if you need further details!
