@@ -189,7 +189,7 @@ class Interface:
                     if (self.current_player.previous_turn_hit_location is None) and (self.current_player.orthogonal_points_to_shoot is None): # If the AI did NOT hit a ship on the last turn, 
                         
                         position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1,10)}" # Randomly select a position 
-                        print("Medium AI randomly chose position =", position, "to shoot") # TODO: remove
+                        print("Medium AI randomly chose position =", position, "to shoot") 
                         result = opponent.receive_shot(position) # Process the shot and get the result.
                         if result == 'Already Shot':  # If the position was already shot at
                             print("already shot this position") # TODO: remove
@@ -229,7 +229,7 @@ class Interface:
                         elif result == 'Sunk': 
                             self.current_player.previous_turn_hit_location = None # Set the previous_turn_hit_location to None since AI sunk the ship 
                             self.current_player.orthogonal_points_to_shoot = None # Set AI Player orthogonal_points_to_shoot to None since the ship was sunk
-                            print(f"Hit! Ship size {self.get_ship_size_at(shot_location)}. Sunk!") # TODO: remove
+                            print(f"Hit! Ship size {self.get_ship_size_at(shot_location)}. Sunk!") 
                         return self.check_winner() # Check for a winner after the shot.
                 # Hard mode - never miss, shoot directly at ship locations
                 elif self.current_player.difficulty == 'h': # If the AI is set to hard difficulty
