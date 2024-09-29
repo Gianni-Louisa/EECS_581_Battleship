@@ -9,8 +9,9 @@ Creation date: 9/28/24
 """
 
 import re  # Import the regular expressions module for pattern matching Logic based on chatgpt query and research due to the first time implementing regular expression logic.
-import random
-from Ship import Ship
+import random # Import the random module
+from Ship import Ship # Import the ship class
+from Common import convert_position_to_indices # Import the Common function
 
 class Player:
     def __init__(self):
@@ -96,7 +97,7 @@ class Player:
 #end of team, chat gpt, and previous team authored
     def receive_shot(self, position):
         """Receive a shot on the board and return the result."""
-        col, row = self.convert_position_to_indices(position)  # Convert the shot position to board indices.
+        col, row = convert_position_to_indices(position)  # Convert the shot position to board indices.
         
         # Check if the shot has already been made
         if position in self.hits or position in self.misses:
@@ -166,10 +167,3 @@ class Player:
                         row += ". "  # Print a dot for unexplored positions.
             print(row)
         print()
-
-
-    def convert_position_to_indices(self, position):
-        """Convert board position from letter-number format to indices."""
-        col = ord(position[0]) - ord('A')  # Convert column letter to index (0-9).
-        row = int(position[1:]) - 1  # Convert row number to index (0-9).
-        return col, row  # Return the column and row indices.
