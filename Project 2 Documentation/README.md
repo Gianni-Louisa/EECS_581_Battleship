@@ -38,8 +38,8 @@ We added an AI opponent system with three difficulty levels: Easy, Medium, and H
 
 ---
 
-### 2. **Offline Scoreboard**
-We implemented an offline scoreboard system that allows players to track their wins and losses even when not connected to the internet. This scoreboard is persistent, storing results locally in a JSON file.
+### 2. **Scoreboard**
+We implemented an scoreboard system that allows players to track their wins and losses throughout games even when the program has stopped. This scoreboard is persistent, storing results locally in a JSON file.
 
 #### How it works:
 - The `SaveGame.py` file manages saving and loading game data, including the scoreboard. We use the JSON module to write and read from the local storage.
