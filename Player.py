@@ -39,12 +39,12 @@ class Player:
         
         if self.is_ai:
             # AI will place ships randomly without printing the placement details
-            for _ in range(size):  # Loop to place multiple ships if size is greater than 1
+            while True: # Loop until ship is placed in a valid position
                 position = f"{random.choice('ABCDEFGHIJ')}{random.randint(1, 10)}"  # Randomly select a position
                 if size <= 2:
-                    direction = random.choice('HV')  # Randomly choose orientation for size 1 and 2 ships
+                    current_ship.direction = random.choice('HV')  # Randomly choose orientation for size 1 and 2 ships
                 else:
-                    direction = random.choice('NSEW')  # Randomly choose orientation for larger ships
+                    current_ship.direction = random.choice('NSEW')  # Randomly choose orientation for larger ships
 
                 # Don't print AI's chosen position or direction
                 valid_placement = current_ship.set_coordinates(position)  # Set the ship's coordinate
@@ -87,8 +87,8 @@ class Player:
 
         self.ships.append(current_ship)  # Record the ship's coordinates and size
 
-        if not self.is_ai:  # Make sure we don't reveal the AI board
-            self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
+        # if not self.is_ai:  # Make sure we don't reveal the AI board
+        self.print_board(reveal_ships=True)  # Show the player's board after placing the ship.
 
         return True
 
