@@ -60,7 +60,7 @@ We implemented an offline scoreboard system that allows players to track their w
 To add more variety and challenge to the gameplay, we introduced new ship shapes that deviate from the standard rectangular forms. These include L-shaped, T-shaped, and cross-shaped ships.
 
 #### How it works:
-- The `Ship.py` file handles the configuration and placement of these new ship shapes. Each shape is represented as a collection of relative coordinates (e.g., an L-shape might be described as [(0, 0), (1, 0), (2, 0), (2, 1)]).
+- The `Ship.py` file handles the configuration and placement of these new ship shapes. Each shape is represented as a collection of relative coordinates.
 - **Key Functions:**
     - `Ship.__init__()`:
         - This constructor is called when creating a new ship. It assigns a shape and validates the placement based on the game grid’s boundaries.
@@ -81,7 +81,7 @@ To add more variety and challenge to the gameplay, we introduced new ship shapes
 
 - **Battleship.py**: The main entry point that manages the game’s flow.
     - Calls functions like `start_game()` to initialize settings, `take_turn()` for alternating between players or AI, and `update_scoreboard()` for saving results.
-- **AI.py**: Contains the logic for AI decision-making.
+- **Player.py**: Contains the logic for AI decision-making.
     - Functions like `random_fire()`, `target_adjacent()`, and `cheat_fire()` are used depending on the AI difficulty.
 - **SaveGame.py**: Manages saving and loading game states.
     - `save_score()` and `load_scoreboard()` ensure the persistence of game results.
