@@ -4,7 +4,7 @@ Description: Saves how many times each player has won
 Inputs: who won the game and a txt file
 Outputs: a txt file
 Sources of code: None 
-Authors: Kyle
+Authors: Kyle Moore
 Creation Date: 9/23/24
 '''
 
