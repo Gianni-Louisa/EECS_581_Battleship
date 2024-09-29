@@ -91,5 +91,5 @@ To add more variety and challenge to the gameplay, we introduced new ship shapes
     - Provides useful constants and helper functions used throughout the code.
 
 ---
-
-This README now includes in-depth functional and technical details about the features we added, including which functions are responsible for the new behavior and why they are structured that way. Let me know if you need further details!
+## Project Additions Done By:
+### Gianni Louisa, Brinley Hull, Ben Renner, Kyle Moore, Connor Bennudriti
